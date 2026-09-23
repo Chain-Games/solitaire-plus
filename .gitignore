@@ -21,3 +21,4 @@ __pycache__/
 
 # Local dev infra data
 .dev/
+.claude/
