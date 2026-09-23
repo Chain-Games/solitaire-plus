@@ -46,7 +46,7 @@ export interface CardAtlas {
  * Everything below is 21 Wild's card look, ported verbatim from
  * wild21-pixi/src/pixi/cardTexture.ts and cardFace.ts (owner's decision
  * 2026-09-22: "use the EXACT deck 21 wild is using"). Only the back's centre
- * mark reads "S+" instead of "21". The palette values are 21 Wild's tokens.
+ * mark is the Solitaire Plus logo instead of "21". The palette values are 21 Wild's tokens.
  */
 const TOKENS = {
   void: 0x0d0a18,
@@ -350,6 +350,49 @@ function paintFace(
   ctx.restore();
 }
 
+/** The back's logo: its width as a fraction of the card's. */
+const LOGO_W = 0.86;
+
+interface LogoArt {
+  readonly image: HTMLImageElement;
+  /** The opaque bounds inside the file (its margins are transparent). */
+  readonly sx: number;
+  readonly sy: number;
+  readonly sw: number;
+  readonly sh: number;
+}
+
+/** Load public/brand/logo.png and find its opaque bounds; null if it will not load. */
+async function loadLogo(): Promise<LogoArt | null> {
+  try {
+    const image = new Image();
+    image.src = `${import.meta.env.BASE_URL}brand/logo.png`;
+    await image.decode();
+    const c = document.createElement('canvas');
+    c.width = image.naturalWidth;
+    c.height = image.naturalHeight;
+    const g = c.getContext('2d', { willReadFrequently: true })!;
+    g.drawImage(image, 0, 0);
+    const { data, width, height } = g.getImageData(0, 0, c.width, c.height);
+    let x0 = width;
+    let y0 = height;
+    let x1 = -1;
+    let y1 = -1;
+    for (let y = 0; y < height; y++)
+      for (let x = 0; x < width; x++)
+        if ((data[(y * width + x) * 4 + 3] ?? 0) > 8) {
+          if (x < x0) x0 = x;
+          if (x > x1) x1 = x;
+          if (y < y0) y0 = y;
+          if (y > y1) y1 = y;
+        }
+    if (x1 < 0) return null;
+    return { image, sx: x0, sy: y0, sw: x1 - x0 + 1, sh: y1 - y0 + 1 };
+  } catch {
+    return null;
+  }
+}
+
 /** Hypotrochoid, the curve behind every banknote guilloche. */
 function guilloche(
   ctx: CanvasRenderingContext2D,
@@ -375,7 +418,12 @@ function guilloche(
   ctx.stroke();
 }
 
-function paintBack(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+function paintBack(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  logo: LogoArt | null,
+): void {
   const radius = CARD_RADIUS * w;
   ctx.save();
   roundRectPath(ctx, 0, 0, w, h, radius);
@@ -424,27 +472,29 @@ function paintBack(ctx: CanvasRenderingContext2D, w: number, h: number): void {
   roundRectPath(ctx, inner, inner, w - inner * 2, h - inner * 2, radius * 0.46);
   ctx.stroke();
 
-  const markR = w * 0.145;
-  ctx.save();
-  ctx.translate(cx, cy);
-  ctx.rotate(Math.PI * 0.25);
-  const plate = ctx.createLinearGradient(-markR, -markR, markR, markR);
-  plate.addColorStop(0, css(mixHex(TOKENS.plum, TOKENS.violet, 0.45)));
-  plate.addColorStop(1, css(TOKENS.feltDeep));
-  ctx.fillStyle = plate;
-  ctx.fillRect(-markR, -markR, markR * 2, markR * 2);
-  ctx.lineWidth = Math.max(1, w * 0.008);
-  ctx.strokeStyle = css(TOKENS.gold, 0.8);
-  ctx.strokeRect(-markR, -markR, markR * 2, markR * 2);
-  ctx.lineWidth = Math.max(1, w * 0.003);
-  ctx.strokeStyle = css(TOKENS.gold, 0.32);
-  ctx.strokeRect(-markR * 0.78, -markR * 0.78, markR * 1.56, markR * 1.56);
-  ctx.restore();
+  if (!logo) {
+    const markR = w * 0.145;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(Math.PI * 0.25);
+    const plate = ctx.createLinearGradient(-markR, -markR, markR, markR);
+    plate.addColorStop(0, css(mixHex(TOKENS.plum, TOKENS.violet, 0.45)));
+    plate.addColorStop(1, css(TOKENS.feltDeep));
+    ctx.fillStyle = plate;
+    ctx.fillRect(-markR, -markR, markR * 2, markR * 2);
+    ctx.lineWidth = Math.max(1, w * 0.008);
+    ctx.strokeStyle = css(TOKENS.gold, 0.8);
+    ctx.strokeRect(-markR, -markR, markR * 2, markR * 2);
+    ctx.lineWidth = Math.max(1, w * 0.003);
+    ctx.strokeStyle = css(TOKENS.gold, 0.32);
+    ctx.strokeRect(-markR * 0.78, -markR * 0.78, markR * 1.56, markR * 1.56);
+    ctx.restore();
 
-  const size = Math.round(w * 0.15);
-  ctx.font = `400 ${size}px ${DISPLAY_FACE}`;
-  ctx.fillStyle = css(TOKENS.gold, 0.92);
-  drawTracked(ctx, 'S+', cx, cy + size * 0.02, size * 0.06);
+    const size = Math.round(w * 0.15);
+    ctx.font = `400 ${size}px ${DISPLAY_FACE}`;
+    ctx.fillStyle = css(TOKENS.gold, 0.92);
+    drawTracked(ctx, 'S+', cx, cy + size * 0.02, size * 0.06);
+  }
 
   const band = Math.max(6, w * 0.2);
   const shade = css(TOKENS.void, 0.55);
@@ -461,6 +511,18 @@ function paintBack(ctx: CanvasRenderingContext2D, w: number, h: number): void {
     gradient.addColorStop(1, clear);
     ctx.fillStyle = gradient;
     ctx.fillRect(rx, ry, rw, rh);
+  }
+  // The Solitaire Plus logo (the owner's art), over the vignette so it
+  // reads at full strength, with a soft drop so it sits on the field.
+  if (logo) {
+    const lw = w * LOGO_W;
+    const lh = (lw * logo.sh) / logo.sw;
+    ctx.save();
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+    ctx.shadowBlur = w * 0.04;
+    ctx.shadowOffsetY = w * 0.012;
+    ctx.drawImage(logo.image, logo.sx, logo.sy, logo.sw, logo.sh, cx - lw / 2, cy - lh / 2, lw, lh);
+    ctx.restore();
   }
   ctx.restore();
 }
@@ -520,7 +582,8 @@ export async function bakeCardSheet(
     paint(ctx);
     ctx.restore();
   };
-  drawAt(52, (x) => paintBack(x, cellW, cellH));
+  const logo = await loadLogo();
+  drawAt(52, (x) => paintBack(x, cellW, cellH, logo));
   let done = 0;
   for (const c of bakeOrder()) {
     let art: HTMLImageElement | null = null;

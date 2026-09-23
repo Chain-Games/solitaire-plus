@@ -58,6 +58,7 @@ async function main(): Promise<void> {
   card(0, cx2, top);
   card(13, cx2, top + ch + 24);
   card(52, cx2 + cardW + 24, top);
+  card(52, cx2 + cardW + 24, top + ch + 24);
   document.title = 'ready';
 }
 void main();
