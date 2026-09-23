@@ -38,13 +38,13 @@ describe('undo', () => {
   });
 
   it('reverses a recycle and a draw of cards already seen', () => {
-    let s = layout({ stock: ['2C', '3C', '4C'] });
+    let s = layout({ stock: ['2C'] });
     s = mustApply(s, { t: 'draw' }); // first sight: a barrier
     expect(canUndo(s)).toBe(false);
     const drawn = board(s);
     s = mustApply(s, { t: 'draw' }); // recycle
     const recycled = board(s);
-    s = mustApply(s, { t: 'draw' }); // the same three again: seen, so no barrier
+    s = mustApply(s, { t: 'draw' }); // the same card again: seen, so no barrier
     expect(canUndo(s)).toBe(true);
     s = undo(s);
     expect(board(s)).toBe(recycled);

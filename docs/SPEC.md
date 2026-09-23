@@ -1,4 +1,4 @@
-# Solitaire Plus — rules + architecture spec (v1, for grading)
+# Solitaire Plus — rules + architecture spec (v2, for grading)
 
 Klondike inside the Blockari product: same shell, screens, economy, XP, share
 cards and async challenge model. References read: `KLONDIKE-BRIEF.md`; Blockari
@@ -16,7 +16,7 @@ src/pixi card lighting).
 | Deals | **Solvable-only**, filtered server-side from a precomputed pool. Not needed for fairness (both players get the same deal); it's there for the pitch and so the clear bonus is always reachable. |
 | Clock | **300 s** (5:00). |
 | Scoring | **Our own points table**, calibrated to Blockari's ranges (typical 3–6k, a strong clear ~11–12k). Blockari's level curve and XP shape are unchanged. |
-| Draw / redeals / undo / autocomplete | **Draw-3, unlimited redeals, barrier undo, one-tap autocomplete.** All are fixed constants in `rules.ts`, identical for both players and in practice. |
+| Draw / redeals / undo / autocomplete | **Draw-1 (owner's decision), unlimited redeals, barrier undo, one-tap autocomplete.** All are fixed constants in `rules.ts`, identical for both players and in practice. |
 | Hidden information | **The seed never leaves the server** in staked play. Face-down cards and the unseen stock are revealed card by card, as the server replays the moves. This is the one real departure from Blockari. See §4. |
 
 ---
@@ -36,7 +36,7 @@ These follow brief §4 exactly:
 - **Auto-flip:** a newly exposed face-down card flips automatically, as part of the move that exposed it.
 
 ### 1.3 Stock
-- **Draw-3.** A draw moves 3 cards (or however many remain) to the waste; the top one is playable.
+- **Draw-1** (owner's decision). A draw turns the stock's top card onto the waste, where it is playable.
 - **Recycle.** Tapping an empty stock turns the waste back over into the stock.
 - **Redeals are unlimited.**
 
@@ -94,12 +94,12 @@ Every positive source is bounded per card, so scores cannot be farmed:
 - The step stops growing at 5X (`streakCap`). Undo restores the streak along with everything else.
 - The pill shows from 2X, exactly as Blockari does.
 
-**Measured magnitudes.** `SWEEP=1 vitest run test/sweep.test.ts` plays 1000 seeds with a greedy bot. The bot never plans, so its numbers are a floor for a real player.
+**Measured magnitudes (draw-1).** `SWEEP=1 vitest run test/sweep.test.ts` plays 1000 seeds with a greedy bot. The bot never plans, so its numbers are a floor for a real player.
 
 | Game | Estimate |
 |---|---|
-| Bot, all games | p10 550 · **p50 1,625** · p90 3,625 · 2% clears · avg 7 cards home. A human sends 15–25 home in 5 min, so a typical human game lands at ~3–6k. |
-| Bot clears | **11.8k–14.1k** (F 5200 + R 1050 + T ~300 + streak 2.2–4.9k + 400 best + 2000 + time 170–900), cleared at 3:30–4:45 → LV 10 |
+| Greedy bot, casual pace | p10 1,175 · **p50 2,475** · p90 6,175 · 4.3% clears · avg 13 cards home. A human sends 20–30 home in 5 min, so a typical human game lands at ~4–6k. |
+| Bot clears | **10.7k–15.5k** (p50 12.1k casual, 13.9k quick), cleared at p50 286 s casual / 144 s quick → LV 10 |
 
 This matches Blockari's spread. Its admin buckets run 0–1k / 1–3k / 3–6k / 6–10k / 10k+, and the owner's reference game is 9,520 at LV 8. The first draft (+50 per step up to 10 steps, streak held through plain moves) put bot clears at 15–30k. The streak made up most of the total, so it was cut to the rule above.
 
@@ -119,7 +119,7 @@ This matches Blockari's spread. Its admin buckets run 0–1k / 1–3k / 3–6k /
 |---|---|---|
 | played | 50 | 50 |
 | score | ⌊score/50⌋ | ⌊score/50⌋ |
-| lines → **cards** | 10 / line (~23 typical) | **5 / card home** (typical ~20 → 100; clear 52 → 260) |
+| lines → **cards** | 10 / line (~20 typical) | **10 / card home** (typical human ~25 → 250; clear 52 → 520). Calibration in §9 (f). |
 | levels | 25 × (level − 1) | same |
 | streak | 40 if best ≥ 4 | same |
 | challenge | 25 | same |
@@ -128,7 +128,7 @@ This matches Blockari's spread. Its admin buckets run 0–1k / 1–3k / 3–6k /
 - A game with no moves pays 0 XP.
 - The XP level curve is `150·(n−1)(n+3)`, with the same 5-level span and tiers 1–5.
 - Rank names are themed, as 21 Wild did (owner's decision, "a different game gets different names"). Proposed: **Pip, Deal, Run, Stack, Cascade, Tableau, Foundation, Royal, Klondike** (then Klondike II, III …). They use the same cool → hot → white-gold colour order.
-- Owner to confirm the names.
+- Owner approved the names (via the critic, 09-23).
 
 ---
 
@@ -138,8 +138,8 @@ This matches Blockari's spread. Its admin buckets run 0–1k / 1–3k / 3–6k /
 - **Race-to-clear is worse.** A race is decided almost entirely by whether the deal is solvable and by stock luck on the first pass. A score duel still rewards clearing (+2000 plus the time bonus) but ranks every non-clear game too.
 - **Can KLONDIKE-BRIEF's dealer produce solvable deals? No.** It specifies a plain shuffle, with no solver and no dealer constraints.
 - **Cost of solvable-only deals:**
-  - A deterministic bounded solver (DFS with move ordering and a transposition table over canonical state, draw-3 aware) goes in `packages/sim/src/solver.ts`. It is pure and has golden tests. Only the server calls it.
-  - Draw-3 with unlimited redeals is roughly 80% solvable.
+  - A deterministic bounded solver (DFS with move ordering and a transposition table over canonical state, draw-1) goes in `packages/sim/src/solver.ts`. It is pure and has golden tests. Only the server calls it.
+  - Draw-1 with unlimited redeals is roughly 80–90% solvable.
   - At a 250k-node budget (~50–150 ms on one core), most deals resolve. Deals that come back "unknown" are rejected along with the "unsolvable" ones.
   - Expected ~1.4 attempts per accepted seed, i.e. **~0.1–0.3 s CPU per deal**.
   - To keep this off the request path, a boot-time + interval worker keeps a Redis list of ≥ 64 verified seeds (`deals:pool`). `POST /challenges` pops one.
@@ -148,7 +148,7 @@ This matches Blockari's spread. Its admin buckets run 0–1k / 1–3k / 3–6k /
 - **Build order:** the solver comes *after* the playable core. The flag defaults to `any` until the solver's golden tests pass.
 
 **2. Clock: 300 s.**
-- Expert draw-3 clears take ~2–4 min, and a median player needs 6–10 min.
+- Measured for draw-1 (§1.7 sweep): a fast greedy player clears every deal it can solve in ~144 s (p50); a casual-pace one needs ~286 s and loses half of those clears to the clock. Experts clear in 2–3 min.
 - At 300 s a strong player clears with time to spare, so the time bonus means something. A median player sends ~20–30 cards home, so scores spread across the whole range, which is what a duel needs.
 - At 180 s, clears become rare and scores collapse into reveals.
 - At 600 s, an async mobile session is too long (the Blockari/21 Wild loop is "one short burst").
@@ -161,7 +161,7 @@ This matches Blockari's spread. Its admin buckets run 0–1k / 1–3k / 3–6k /
 - It is scaled ×10 into Blockari's magnitude, and adds streak and level so the HUD, results breakdown and XP read the same across all three games.
 
 **4. Draw mode, redeals, undo, autocomplete: all fixed, all in `rules.ts`, identical for both players and in practice.**
-- **Draw-3.** The brief's choice; it has more skill expression. `drawCount` is a single constant if the owner would rather have draw-1 for accessibility. It would change the golden hashes, so it has to be decided before the first seed is stored.
+- **Draw-1**, the owner's decision (09-23). `drawCount = 1` is in `rules.ts` and the golden hashes are re-pinned on it.
 - **Unlimited redeals, no recycle penalty.** The clock is the cost.
 - **Barrier undo** (§1.4).
 - **One-tap autocomplete** (§1.5).
@@ -177,7 +177,7 @@ This matches Blockari's spread. Its admin buckets run 0–1k / 1–3k / 3–6k /
 | Server: raw `pg`, no ORM, esbuild bundle of `src/game` (§2) | **Blockari:** Drizzle + migrations, and `packages/sim` as a workspace package. The brief's principle ("never write the rules twice") is preserved. |
 | Infra: nginx inside the container + Caddy (§2) | **Blockari:** one server container serves the built client, with Caddy in front. |
 | GSAP 3.15 for every tween (§2) | **Blockari's motion stack** (its easings/effects modules). GSAP only if Blockari already uses it for the matching beat. Parity beats library choice. |
-| Draw-3, unlimited redeals, auto-flip, tap = double-tap, 44 px hit targets, drag with pointer capture, snap-back, card art source and SVG cleanup, atlas ≤ 4096², paint table before bake, quality tier fallback, pixi-test harness, never launch Chromium directly, `file://` trap, `git status --porcelain` before build | **Brief, as written.** None of it conflicts. |
+| Unlimited redeals, auto-flip, tap = double-tap, 44 px hit targets, drag with pointer capture, snap-back, card art source and SVG cleanup, atlas ≤ 4096², paint table before bake, quality tier fallback, pixi-test harness, never launch Chromium directly, `file://` trap, `git status --porcelain` before build | **Brief, as written.** None of it conflicts. |
 | Layout "design rect + letterbox, no breakpoints" (§5) | **Blockari's `layout.ts`** (compact < 600 px, pads 16/24, HUD strip). Parity is measured against it. The brief's two layout rules (min of width/height; measure clipped boxes) stay as test rules. |
 
 ---
@@ -191,7 +191,7 @@ packages/sim        @solitaire-plus/sim — pure TS, zero deps. rules, rng, deck
                     autoTarget, levels, xp, ranking, replay, hash, solver, mask (§4)
 apps/server         Fastify 5 + Drizzle + Postgres 17 + Redis 7; serves built client
 apps/client         Vite + React 19 + Zustand; PixiJS 8 playfield
-tools/capture       PNG stills: phone 390×844 + desktop 1440×900 (adds the 1440 preset)
+tools/capture       PNG stills @2x: phone 390×844 (780×1688 px) + desktop 1920×1080 (3840×2160 px)
 tools/parity        measure.mjs port from 21 Wild — DOM geometry diff vs Blockari, ≤4 px
 qa/<screen>/        committed PNG captures for the critic (see §6)
 ```
@@ -215,7 +215,7 @@ qa/<screen>/        committed PNG captures for the critic (see §6)
 ### 3.2 Server
 - Blockari's routes, 1:1: auth, challenges, games, users, notifications with SSE, push, share, `/s/:id`, admin.
 - **Tables:** `users`, `ledger`, `games`, `challenges`, `xp_events`, `share_cards`, `notifications`, `push_subscriptions`, `client_meta`.
-- `xp_events` is **`UNIQUE (ref_id, kind, user_id)`**. Blockari @ c8a96a0 is still `(ref_id, kind)`, so this is fixed here from migration 0000.
+- `xp_events` is **`UNIQUE (ref_id, kind, user_id)`** from migration 0000, and `awardXp`'s `ON CONFLICT` targets exactly that index.
 - `services/economy.ts` is the only writer of `balance`, via `debit`/`credit`, each writing a ledger row in the caller's transaction.
 - **Economy constants:**
   - `STARTING_BALANCE` 1000
@@ -272,8 +272,7 @@ qa/<screen>/        committed PNG captures for the critic (see §6)
    - The client sends that move immediately (`POST /games/:id/moves`).
    - The server replays it against the full deck and answers `{reveals:[{pos,card}], stateHash}`.
    - The client injects the reveal and applies the move.
-   - The flip or draw animation starts on input. The face texture swaps in at the flip's midpoint (~120 ms), which hides a normal round trip. Only the revealed card's own input waits for the reply.
-   - If p95 round-trip time measures over 150 ms, the fallback is to pre-send the next draw's 3 cards. The leak is one draw ahead, and it disappears after the first stock pass anyway.
+   - The flip or draw animation starts on input and the face swaps in at the flip's midpoint (~120 ms), which hides a normal round trip. **Input is held until the reply lands** (see 4a): nothing is played on top of an unconfirmed reveal, so the move log stays strictly ordered.
 5. `tMs` is stamped at input, not when the reply arrives, so network latency never costs a player clock time.
    - The server keeps Blockari's checks: monotonic `tMs`, below 300 000, and ≤ wall-elapsed + 2 s.
    - A replay failure truncates to the longest valid prefix.
@@ -299,9 +298,8 @@ qa/<screen>/        committed PNG captures for the critic (see §6)
   - `compose.prod.yaml` will mirror Blockari's for the eventual prod deploy.
   - Tests use a separate `solitaire_test` database, and refuse to run against the dev one.
 - **Ports:** server `3030`, Vite dev `5373`, preview `4379`. None of these collide with anything in use on this box (4179 is a live Blockari preview; 7860 and 8090 are taken).
-- **Dev URL:** `http://192.168.8.226:5373`, LAN only. There is **no public dev host.**
-  - **For the critic:** every capture is committed to `qa/sol-<screen>/{phone-390x844,desktop-1440x900}/*.png` on `dev` and is also written to `/tmp/aaa2/sol-<screen>/` on this machine. Each "screen X ready @ sha" report lists the exact paths.
-  - If you need a live URL from off-LAN, a Cloudflare quick tunnel is the option, but it exposes a dev box publicly, so I'd want Adam's OK first.
+- **Dev URL:** `http://192.168.8.226:5373` (Vite), preview `:4379`, API `:3030`. All three bind `0.0.0.0` for the critic on 192.168.8.175.
+  - **Captures:** @2x, phone 780×1688 px (390×844 CSS) and desktop 3840×2160 px (1920×1080 CSS). Each is committed to `qa/sol-<screen>/{phone,desktop}/*.png` on `dev` and also written to `/tmp/aaa2/sol-<screen>/`. Each "screen X ready @ sha" report lists the exact paths.
 
 ---
 
@@ -318,7 +316,63 @@ Nothing in this list starts before the spec is approved.
 
 ---
 
-## 7. Decisions needed from the owner
-1. **Rank names:** Pip … Klondike (§1.9)?
-2. **Draw-3 vs draw-1.** Draw-3 is recommended. This must be settled before the first seed is stored.
-3. **Public tunnel for a live dev URL**, or are committed PNGs enough?
+## 7. Owner decisions (resolved 09-23)
+1. Rank names: Pip, Deal, Run, Stack, Cascade, Tableau, Foundation, Royal, Klondike (then II, III …). Approved.
+2. Draw-1. Done, with the goldens re-pinned.
+3. No public tunnel: the dev servers bind 0.0.0.0 on the LAN.
+4. The card look is 21 Wild's exact deck (face bake, paper, Bebas Neue indices, guilloche back); only the back's mark reads S+.
+
+## 8. Audio, admin/telemetry, art plan
+
+**Audio.** Blockari's `AudioEngine`, mixer and settings ship unchanged (master / music / effects, draggable sliders, persisted). Its music beds and world ambiences carry over with the worlds.
+- Card cues are new: place, flip, draw, recycle, foundation, return, the autocomplete cascade, and the shuffle on deal.
+- They are made with the same tools Blockari's cues were (tools/audiogen, receipts committed), or with `audio/synth.ts` for anything procedural. The rendered files are committed and no key ships in the runtime (brief §8).
+- Streak, level, countdown, results and coin cues are Blockari's as-is: same product, same sound.
+
+**Admin and telemetry.** Blockari's `/admin.html` dashboard and `services/telemetry.ts` are ported as-is, with ADMIN_TOKEN still required and 503 when unset. The Klondike changes:
+- end reasons are cleared / timeout / forfeit
+- "lines" is now cards home
+- the score buckets are unchanged (0–1k / 1–3k / 3–6k / 6–10k / 10k+)
+- "played" means at least one move
+
+**Art.**
+- **Room:** Blockari's painted worlds and backdrop shader carry over, and the table plate takes a low-saturation felt treatment in Solitaire Plus's green tokens.
+- **Cards:** 21 Wild's deck (§7.4).
+- **Brand:** a Solitaire Plus wordmark, favicon/app icons, the og card and the story background are new art.
+  - They are composed from the worlds' layers plus a wordmark set in Rajdhani.
+  - The discrete GPU on this box is reserved for the resident model (brief §10), so there is no image-model generation here. If Adam wants painted key art, it comes from outside.
+- **Tokens:** Blockari's names and roles, new values, set in `docs/art-direction.md` with the first screen.
+
+## 9. Changes in v2 (answers to the v1 grade, 7.5)
+
+- **(a) Lower bound on claimed time.** A move that shows a never-seen card or ends the game is sent the moment it is made. The server refuses it unless `tMs ≥ wall-elapsed − CLOCK_TOLERANCE_MS` (2 s), returning `409 stale-move`. Upper bound as before: `tMs ≤ wall-elapsed + 2 s`.
+  - So the clear time, the time bonus and the tiebreak all rest on a server-bounded time.
+  - Plain moves stay batched: they reveal nothing, and are bounded by the next reveal or finish behind them (tMs is monotonic).
+  - Implemented in `services/games.ts appendMoves`, with a test.
+- **(b) Offline or timed-out reveals.**
+  - A reveal-bound move is synchronous: input is held (the card mid-flip) until the reply. The flip covers a normal round trip.
+  - No reply in 1.5 s: a "Reconnecting…" strip, and retries with backoff. The game clock keeps running on the wall; there is no pause in a staked game.
+  - A retry, or a `stale-move` answer, **re-stamps the move at the current game clock**. That is valid because nothing was played after it.
+  - If the connection never comes back before `deadline = start + 300 s + 15 s`, the server's sweeper finalises the game with the moves it has, like any abandoned game.
+  - A reload resumes from the server's masked deal and move list.
+- **(c) Single-use seeds, separate practice pool.**
+  - `challenges.seed` is `UNIQUE` (migration 0001). A pool seed is popped (LPOP) once and can never deal a second challenge.
+  - Practice draws from its own Redis list, `deals:practice`, filled by the same worker from a different seed namespace. A practice seed is never pushed to `deals:pool` and vice versa.
+- **(d)** Audio, admin/telemetry and the art plan: §8.
+- **(e)** Adam's 09-23 directive (this product: clock, points, streaks, levels, React shell, server, accounts, challenges) overrides KLONDIKE-BRIEF §1, §2, §4 and §12 wherever they conflict. §2.5 lists each conflict.
+- **(f) XP per card home: 10**, calibrated.
+  - Blockari's typical game, measured with its greedy bot at human pace (a placement every 1.5–4 s, 400 seeds), is score p50 6,960, 20 lines, LV 7, **game XP p50 569 / mean 544**.
+  - A typical human Klondike game here is about 25 cards home, ~4.8k points, LV 5. At 10 per card that is 50 + 96 + 250 + 100 + 25 + 40 = **561 (+2%)**; at 5 per card it was 436 (−21%).
+  - Klondike bots are weak players (greedy averages 13 home), so they are not the reference here.
+- **(g)** Captures @2x at 780×1688 and 3840×2160: §5.
+- **(h)** The (ref_id, kind, user_id) index is kept, with no claim about Blockari's.
+- **(i)** Vite dev 5373, preview 4379 and API 3030 bind 0.0.0.0.
+- **Draw-1 re-derivation.** The goldens were re-pinned (bot game 65 moves, total 1100; solved seed `clear-13`). The 1000-seed sweep:
+  - Greedy casual (1.5–4 s a move): p50 2,475, 4.3% clears, 13 home.
+  - Greedy quick (0.6–2 s): 9.1% clears at p50 144 s.
+  - Clears total 10.7–15.5k.
+  - **Clock stays 300 s:** it separates pace (a fast player clears everything solvable with ~2.5 min to spare; a casual one loses half those clears to the clock).
+  - **Clear bonus stays 2000, time bonus 10 per second:** the time bonus spans ~0–1,600 across clearers, enough to rank clears by pace without swamping the base.
+- **Final score floor.** A final total is never below 0. Taking cards off the foundations can drive the in-play score negative, but a result is never a debt, and the admin buckets start at 0.
+
+

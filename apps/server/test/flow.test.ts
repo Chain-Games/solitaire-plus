@@ -39,7 +39,7 @@ import { runMigrations } from '../src/db/migrate.js';
 import { clientMeta, games, users, xpEvents } from '../src/db/schema.js';
 import { claimDailyGrant } from '../src/services/auth.js';
 import { resolveChallengeIfReady } from '../src/services/challenges.js';
-import { finalizeGame } from '../src/services/games.js';
+import { appendMoves, finalizeGame } from '../src/services/games.js';
 import type { AdminOverview } from '../src/services/admin.js';
 import { SHARE_MAX_IMAGE_BYTES } from '../src/services/share.js';
 import { locateIp, noteClient, profileOf } from '../src/services/telemetry.js';
@@ -346,6 +346,45 @@ suite('challenge flow', () => {
     expect(view.json.game.seed).toBeNull();
     expect(view.json.game.deal.filter((c) => c !== null)).toHaveLength(7 + learned.size);
     for (const [slot, card] of learned) expect(view.json.game.deal[slot]).toBe(card);
+  });
+
+  it('refuses a card-showing or game-ending move stamped behind the wall clock (stale-move), accepts it re-stamped', async () => {
+    const A = client();
+    type UserRes = { user: { id: string } };
+    const me = await A<UserRes>('POST', '/api/auth/guest');
+    const created = await A<{ gameId: string }>('POST', '/api/challenges', { entryFee: 5 });
+    expect((await A('POST', `/api/games/${created.json.gameId}/start`)).status).toBe(200);
+    const game = await app.db.query.games.findFirst({ where: eq(games.id, created.json.gameId) });
+    const start = game!.startedAt!.getTime();
+    const strict = { ...cfg!, CLOCK_TOLERANCE_MS: 2000 };
+    // 60 s into the game, a first draw stamped at 1 s shows a new card: refused.
+    const at60 = new Date(start + 60_000);
+    await expect(
+      appendMoves(
+        app.db,
+        strict,
+        created.json.gameId,
+        me.json.user.id,
+        0,
+        [{ t: 'draw', tMs: 1000 }],
+        at60,
+      ),
+    ).rejects.toMatchObject({ code: 'stale-move' });
+    expect(
+      (await app.db.query.games.findFirst({ where: eq(games.id, created.json.gameId) }))!.moves,
+    ).toEqual([]);
+    // Re-stamped within the tolerance it is taken, and answers with the card it showed.
+    const ok = await appendMoves(
+      app.db,
+      strict,
+      created.json.gameId,
+      me.json.user.id,
+      0,
+      [{ t: 'draw', tMs: 58_500 }],
+      at60,
+    );
+    expect(ok.count).toBe(1);
+    expect(ok.reveals).toHaveLength(1);
   });
 
   it('rejects a private challenge from matchmaking but allows it by code', async () => {

@@ -139,13 +139,13 @@ describe('xpForGame', () => {
     expect(xp.parts).toEqual({
       played: 50,
       score: 65, // floor(3275 / 50)
-      cards: 40,
+      cards: 80,
       levels: 75,
       streak: 0,
       challenge: 0,
       win: 0,
     });
-    expect(xp.total).toBe(50 + 65 + 40 + 75);
+    expect(xp.total).toBe(50 + 65 + 80 + 75);
   });
 
   it('pays the streak bonus from a best streak of 4', () => {
@@ -160,13 +160,13 @@ describe('xpForGame', () => {
     expect(xp.parts).toEqual({
       played: 50,
       score: 20,
-      cards: 10,
+      cards: 20,
       levels: 25,
       streak: 0,
       challenge: 25,
       win: 0,
     });
-    expect(xp.total).toBe(130);
+    expect(xp.total).toBe(140);
     // Unknown outcome (the game just finished, opponent still playing): same as lost.
     expect(xpForGame(b, { challenge: true, won: null, pot: 50 })).toEqual(xp);
   });
@@ -178,7 +178,7 @@ describe('xpForGame', () => {
     expect(xpForWin(200)).toBe(200);
     expect(xpForWin(0)).toBe(100);
     expect(xpForWin(25)).toBe(112);
-    expect(xp.total).toBe(130 + 200);
+    expect(xp.total).toBe(140 + 200);
   });
 
   it('a game with no moves earns nothing at all', () => {
@@ -201,7 +201,7 @@ describe('xpForGame', () => {
     expect(quit.parts).toEqual({
       played: 50,
       score: 10,
-      cards: 5,
+      cards: 10,
       levels: 25,
       streak: 0,
       challenge: 25,

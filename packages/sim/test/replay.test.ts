@@ -17,9 +17,9 @@ describe('replay', () => {
     const { moves, state } = botGame('golden', 'golden-bot');
     const r = replay('golden', moves);
     expect(stateHash(r)).toBe(stateHash(state));
-    expect(moves.length).toMatchInlineSnapshot(`64`);
-    expect(stateHash(r)).toMatchInlineSnapshot(`"afdda79e"`);
-    expect(r.breakdown?.total).toMatchInlineSnapshot(`1400`);
+    expect(moves.length).toMatchInlineSnapshot(`65`);
+    expect(stateHash(r)).toMatchInlineSnapshot(`"988a50f9"`);
+    expect(r.breakdown?.total).toMatchInlineSnapshot(`1100`);
   });
 
   it('a solved game replays to a clear', () => {
@@ -35,7 +35,7 @@ describe('replay', () => {
     expect(r.breakdown?.endReason).toBe('cleared');
     expect(r.breakdown?.cardsHome).toBe(52);
     expect(r.breakdown?.elapsedMs).toBeLessThan(RULES.durationMs);
-    expect(seed).toMatchInlineSnapshot(`"clear-5"`);
+    expect(seed).toMatchInlineSnapshot(`"clear-13"`);
   });
 
   it('runs the clock out when moves stop early', () => {

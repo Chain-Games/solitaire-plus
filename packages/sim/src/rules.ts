@@ -7,7 +7,7 @@
  */
 export const RULES = {
   /** Cards turned from the stock per draw (fewer if fewer remain). */
-  drawCount: 3,
+  drawCount: 1,
 
   /** Tableau columns. Column n (0-based) is dealt n + 1 cards, the last face up. */
   columns: 7,
@@ -59,7 +59,7 @@ export const RULES = {
   xpPlayed: 50,
   xpPerScore: 50,
   /** XP per card on the foundations at the end of the game. */
-  xpPerCard: 5,
+  xpPerCard: 10,
   xpPerLevel: 25,
   xpStreakMin: 4,
   xpStreakBonus: 40,

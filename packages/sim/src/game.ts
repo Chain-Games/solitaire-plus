@@ -606,7 +606,9 @@ function end(state: GameState, reason: EndReason, events: GameEvent[]): Transiti
     streakBonus,
     clearBonus,
     timeBonus,
-    total: state.score + streakBonus + clearBonus + timeBonus,
+    // Never below 0: taking cards back off the foundations can drive the
+    // in-play score negative, but a result is never a debt.
+    total: Math.max(0, state.score + streakBonus + clearBonus + timeBonus),
     bestStreak: state.bestStreak,
     cardsHome: cardsHome(state),
     revealed: state.revealed,

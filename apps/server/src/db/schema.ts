@@ -154,6 +154,8 @@ export const challenges = pgTable(
   },
   (t) => [
     index('challenges_open_idx').on(t.status, t.entryFee, t.isPrivate, t.createdAt),
+    // A deal is dealt to one challenge, ever: a pool seed is single-use.
+    uniqueIndex('challenges_seed_idx').on(t.seed),
     index('challenges_creator_idx').on(t.creatorId, t.createdAt),
     index('challenges_taker_idx').on(t.takerId, t.createdAt),
   ],

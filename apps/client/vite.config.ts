@@ -25,6 +25,7 @@ function publicUrlToken(): Plugin {
 export default defineConfig({
   plugins: [react(), publicUrlToken(), hashedPublic()],
   server: {
+    host: '0.0.0.0',
     port: 5373,
     proxy: {
       '/api': { target: API, changeOrigin: false },
@@ -33,6 +34,7 @@ export default defineConfig({
     },
   },
   preview: {
+    host: '0.0.0.0',
     port: 4379,
     proxy: {
       '/api': { target: API, changeOrigin: false },

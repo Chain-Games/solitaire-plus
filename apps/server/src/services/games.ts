@@ -131,13 +131,30 @@ export async function appendMoves(
         throw badRequest('bad-move', 'move is ahead of the wall clock');
       lastT = m.tMs;
     }
-    let after: GameState;
-    try {
-      after = replayFrom(known, fresh);
-    } catch (err) {
-      if (err instanceof ReplayError)
-        throw badRequest('bad-move', `move ${existing.length + err.index}: ${err.reason}`);
-      throw err;
+    // Replayed one move at a time: a move that shows a card for the first
+    // time, or ends the game, is sent the moment it is made (the client
+    // waits on the reply), so its time may not be backdated past the wall
+    // clock: tMs >= wall-elapsed - tolerance. Otherwise a client could hold
+    // a reveal, think, and send it stamped early — or stamp a clear early for
+    // the time bonus and the tiebreak. A refused move is `stale-move`; the
+    // client re-stamps it at its current clock and resends.
+    let after: GameState = known;
+    for (let i = 0; i < fresh.length; i++) {
+      const m = fresh[i]!;
+      const before = after;
+      try {
+        after = replayFrom(before, [m]);
+      } catch (err) {
+        if (err instanceof ReplayError)
+          throw badRequest('bad-move', `move ${existing.length + i}: ${err.reason}`);
+        throw err;
+      }
+      const bound = revealsIn(before, after).length > 0 || after.status !== 'playing';
+      if (bound && m.tMs < wallElapsed - cfg.CLOCK_TOLERANCE_MS)
+        throw conflict(
+          'stale-move',
+          `move ${existing.length + i} at ${m.tMs} ms is behind the wall clock (${wallElapsed} ms)`,
+        );
     }
     const moves = [...existing, ...fresh];
     await tx.update(games).set({ moves }).where(eq(games.id, gameId));

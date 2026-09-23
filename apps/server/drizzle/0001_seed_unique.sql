@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "challenges_seed_idx" ON "challenges" USING btree ("seed");

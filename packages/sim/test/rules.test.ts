@@ -4,6 +4,7 @@ import {
   apply,
   autoTarget,
   canMove,
+  forfeit,
   isError,
   tick,
   type GameState,
@@ -107,15 +108,14 @@ describe('waste', () => {
 describe('the stock', () => {
   const stock = ['2C', '3C', '4C', '5C', '6C', '7C', '8C'];
 
-  it('draws three, then what remains, then recycles in order', () => {
+  it('draws one at a time, then recycles in order, repeatedly', () => {
+    expect(RULES.drawCount).toBe(1);
     let s = layout({ stock });
     const top = (st: GameState) => st.deal[st.waste[st.waste.length - 1] as number];
-    s = mustApply(s, { t: 'draw' }); // 8C 7C 6C: 6C on top
-    expect(s.waste.length).toBe(3);
-    expect(top(s)).toBe(c('6C'));
-    s = mustApply(s, { t: 'draw' }); // 5C 4C 3C
-    expect(top(s)).toBe(c('3C'));
-    s = mustApply(s, { t: 'draw' }); // 2C: only one left
+    s = mustApply(s, { t: 'draw' }); // 8C, the stock's top
+    expect(s.waste.length).toBe(1);
+    expect(top(s)).toBe(c('8C'));
+    for (let i = 0; i < 6; i++) s = mustApply(s, { t: 'draw' });
     expect(s.waste.length).toBe(7);
     expect(s.stock.length).toBe(0);
     expect(top(s)).toBe(c('2C'));
@@ -124,19 +124,18 @@ describe('the stock', () => {
     expect(s.waste.length).toBe(0);
     expect(s.stock.length).toBe(7);
     for (let pass = 0; pass < 3; pass++) {
-      s = mustApply(s, { t: 'draw' });
-      s = mustApply(s, { t: 'draw' });
-      s = mustApply(s, { t: 'draw' });
+      for (let i = 0; i < 7; i++) s = mustApply(s, { t: 'draw' });
       expect(s.waste).toEqual(firstPass);
       s = mustApply(s, { t: 'draw' });
     }
   });
 
-  it('draws two when two remain', () => {
-    let s = layout({ stock: ['2C', '3C'] });
+  it('draws the last card when one remains', () => {
+    let s = layout({ stock: ['2C'] });
     s = mustApply(s, { t: 'draw' });
-    expect(s.waste.length).toBe(2);
-    expect(s.deal[s.waste[1] as number]).toBe(c('2C'));
+    expect(s.waste.length).toBe(1);
+    expect(s.stock.length).toBe(0);
+    expect(s.deal[s.waste[0] as number]).toBe(c('2C'));
   });
 
   it('refuses with nothing in the stock or the waste', () => {
@@ -193,6 +192,8 @@ describe('scoring', () => {
     s = mustApply(s, { t: 'mv', from: 't0', to: 'f2', n: 1 });
     expect(s.score).toBe(RULES.foundationReturnPoints + RULES.foundationPoints);
     expect(s.score).toBeLessThan(0);
+    // The in-play score may dip below 0; the result never does.
+    expect(forfeit(s).state.breakdown?.total).toBe(0);
   });
 });
 

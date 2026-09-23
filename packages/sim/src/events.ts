@@ -29,7 +29,7 @@ export interface ScoreBreakdown {
   readonly clearBonus: number;
   /** clearPerSecond per whole second left at the clear, else 0. */
   readonly timeBonus: number;
-  /** base + streakBonus + clearBonus + timeBonus. */
+  /** base + streakBonus + clearBonus + timeBonus, never below 0. */
   readonly total: number;
   readonly bestStreak: number;
   /** Cards on the foundations at the end, 0..52. */

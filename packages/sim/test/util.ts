@@ -88,7 +88,7 @@ export function mustApply(state: GameState, move: Move): GameState {
 export function botGame(
   seed: string,
   botSeed: string,
-  opts: { minGapMs?: number; maxGapMs?: number } = {},
+  opts: { minGapMs?: number; maxGapMs?: number; smart?: boolean } = {},
 ): { moves: TimedMove[]; state: GameState } {
   const rng = new Rng(botSeed);
   const minGap = opts.minGapMs ?? 400;
@@ -98,7 +98,7 @@ export function botGame(
   let idleDraws = 0;
   let t = 0;
   while (state.status === 'playing') {
-    const move = pick(state);
+    const move = (opts.smart ? searchPick(state, 2) : null) ?? pick(state);
     if (move === null || idleDraws > state.stock.length + state.waste.length + 2) break;
     t += minGap + rng.int(spread + 1);
     if (t >= RULES.durationMs) break;
@@ -131,4 +131,43 @@ function pick(state: GameState): Move | null {
   if (wasteMove) return wasteMove;
   if (state.stock.length > 0 || state.waste.length > 0) return { t: 'draw' };
   return null;
+}
+
+/** What a state is worth if the game ended now, less the clear bonuses. */
+function worth(state: GameState): number {
+  const best = Math.min(state.bestStreak, RULES.streakCap);
+  return (
+    state.score + Math.max(0, best - 1) * RULES.streakEndStep + (state.status === 'ended' ? 1e6 : 0)
+  );
+}
+
+function candidates(state: GameState): Move[] {
+  return legalMoves(state).filter((m) => m.t !== 'mv' || !isFoundation(m.from));
+}
+
+function bestWorth(state: GameState, depth: number): number {
+  let best = worth(state);
+  if (depth === 0 || state.status !== 'playing') return best;
+  for (const m of candidates(state)) {
+    const r = apply(state, m);
+    if (!isError(r)) best = Math.max(best, bestWorth(r.state, depth - 1));
+  }
+  return best;
+}
+
+/**
+ * Two-move lookahead for the best-scoring line (the server tests' greedy
+ * bot). It sees the full deal, so it is stronger than a human at reading the
+ * stock and weaker at planning; closer to a practised player than pick().
+ */
+function searchPick(state: GameState, depth: number): Move | null {
+  const now = worth(state);
+  let best: { v: number; m: Move } | null = null;
+  for (const m of candidates(state)) {
+    const r = apply(state, m);
+    if (isError(r)) continue;
+    const v = bestWorth(r.state, depth - 1);
+    if (!best || v > best.v) best = { v, m };
+  }
+  return best && best.v > now ? best.m : null;
 }
