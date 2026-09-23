@@ -8,9 +8,9 @@ import { rankLabel } from '../shell/xp-view.js';
  * from one function: the STORY (1080×1920, the share sheet) and the LINK
  * (1200×630, what a pasted link unfurls into), the same content re-flowed.
  *
- * The painted scene IS the card: the owner's art (blossoms, the pagoda,
- * Fuji, the logo) runs full-bleed and a dark plate sits over its painted
- * board carrying every word — text never lands on raw art.
+ * The painted scene IS the card: a world painting with the owner's logo
+ * runs full-bleed and a dark plate sits over its lower part carrying every
+ * word — text never lands on raw art.
  *
  * The card is an image with its own type scale; the shell's "nothing under
  * 12 px" rule is about the UI, not about this.
@@ -56,7 +56,7 @@ export interface CardInput {
   /** A challenge game, by state; undefined for a solo run. */
   challenge?: CardChallenge | undefined;
   newBest: boolean;
-  /** `location.host` — no scheme, so the link reads as a handle: `blockari.example.com/take?code=…`. */
+  /** `location.host` — no scheme, so the link reads as a handle: `solitaireplus.example.com/take?code=…`. */
   host: string;
   /** `location.origin` — with the scheme, for the QR code (a scanner needs a full URL). */
   origin: string;
@@ -204,9 +204,9 @@ export function formatScore(n: number): string {
 
 /**
  * The line that travels with the card (the share sheet's text, the modal's
- * copy box). An open challenge: "I scored 9,520 in Blockari. Same pieces,
- * 3 minutes — beat me: AGB2BS". Solo: the same without the dare. A settled
- * one tells the result — "I scored 9,520 on Blockari and won 200 $CHAIN —
+ * copy box). An open challenge: "I scored 9,520 in Solitaire Plus. Same deal,
+ * 5 minutes — beat me: AGB2BS". Solo: the same without the dare. A settled
+ * one tells the result — "I scored 9,520 on Solitaire Plus and won 200 $CHAIN —
  * play free: <host>"; a loss keeps to the score (the card says the rest).
  * Never the code once the challenge is matched: nobody can take it.
  */
@@ -219,16 +219,16 @@ export function shareText(
     const won = challenge.result.won
       ? ` and won ${formatScore(challenge.result.payout)} ${CHAIN_UNIT}`
       : '';
-    return `I scored ${formatScore(total)} on Blockari${won} — play free: ${host}`;
+    return `I scored ${formatScore(total)} on Solitaire Plus${won} — play free: ${host}`;
   }
-  const lead = `I scored ${formatScore(total)} in Blockari. Same pieces, ${MINUTES} minutes`;
+  const lead = `I scored ${formatScore(total)} in Solitaire Plus. Same deal, ${MINUTES} minutes`;
   return challenge ? `${lead} — beat me: ${challenge.code}` : `${lead}.`;
 }
 
 /** The eyebrow over the score: how the run ended (a solo run the player ended is over, a challenge quit is a forfeit). */
 export function endLabel(b: ScoreBreakdown, challenge: boolean): string {
-  return b.endReason === 'stuck'
-    ? 'OUT OF MOVES'
+  return b.endReason === 'cleared'
+    ? 'DECK CLEARED'
     : b.endReason === 'forfeit'
       ? challenge
         ? 'FORFEITED'
@@ -236,15 +236,15 @@ export function endLabel(b: ScoreBreakdown, challenge: boolean): string {
       : "TIME'S UP";
 }
 
-/** "MASON II · XP LV 12": the account line under the name. */
+/** "RUN II · XP LV 12": the account line under the name. */
 export function rankLine(user: CardUser): string {
   return `${rankLabel(user.rank).toUpperCase()} · XP LV ${user.xpLevel}`;
 }
 
-/** The three stat tiles: lines, best streak, level — the results panel's headline rows (the level in the level language's mint). */
+/** The three stat tiles: cards home, best streak, level — the results panel's headline rows (the level in the level language's mint). */
 export function statTiles(b: ScoreBreakdown): { label: string; value: string; tone: Tone }[] {
   return [
-    { label: 'LINES', value: String(b.linesCleared), tone: 'text' },
+    { label: 'CARDS HOME', value: `${b.cardsHome}/52`, tone: 'text' },
     { label: 'BEST STREAK', value: `${Math.max(1, b.bestStreak)}X`, tone: 'text' },
     { label: 'LEVEL', value: `LV ${b.levelReached}`, tone: 'mint' },
   ];
@@ -278,7 +278,7 @@ export function potCopy(entryFee: number, total: number): HeroCopy {
 }
 
 /**
- * The outcome block's lines: "YOU WON" / "+200" + "$CHAIN" / "vs mason · 8,470"
+ * The outcome block's lines: "YOU WON" / "+200" + "$CHAIN" / "vs rowan · 8,470"
  * in mint, or "YOU LOST" / "−100" (the stake, a real minus sign) in rose — the
  * results scene's own words.
  */
@@ -308,17 +308,17 @@ export function takeUrl(origin: string, code: string | null | undefined): string
 
 /** The plate's look, shared by both sizes (the renderer paints these). */
 export const PLATE = {
-  fill: 'rgba(10,12,26,0.94)',
+  fill: 'rgba(5,19,14,0.94)',
   rim: 'rgba(255,255,255,0.12)',
   rimW: 2,
-  shadow: 'rgba(5,6,13,0.6)',
+  shadow: 'rgba(2,7,5,0.6)',
   shadowBlur: 48,
   /** The fade above the top edge ends at the plate colour at this alpha. */
   fadeAlpha: 0.5,
 } as const;
 
 const STORY = {
-  // The plate over the painted board; the art above it (logo, Fuji, the pagoda) stays clear.
+  // The plate over the painting's foot; the art above it (the logo, the world) stays clear.
   plate: { x: 48, y: 1000, w: 984, h: 894, r: 40, fade: 160 },
   padX: 48,
   // Small text is budgeted for the phone: a story is viewed at ~390 css px (×0.36).
@@ -384,7 +384,7 @@ const STORY = {
 } as const;
 
 const LINK = {
-  // The plate along the bottom, over the painted board; logo and both landmarks stay clear.
+  // The plate along the bottom, over the painting's foot; the logo above stays clear.
   plate: { x: 32, y: 338, w: 1136, h: 260, r: 32, fade: 160 },
   padX: 28,
   // Left: the score block, the stat strip and the identity pill.
@@ -519,7 +519,7 @@ function panel(
 }
 
 /**
- * The identity pill: badge · username · "PEBBLE II · XP LV 2" on one line
+ * The identity pill: badge · username · "PIP II · XP LV 2" on one line
  * inside a rounded glass pill, centred on `cx`.
  */
 function pillOps(
@@ -654,7 +654,7 @@ interface HeroMetrics {
  * The second hero: a tinted panel with an eyebrow over the number ("200" at
  * hero size, the coin at cap height before it, "$CHAIN" after) and a small
  * line under it. The pot ("BEAT 9,520 TO WIN" / "Stake 100 to play", amber)
- * and the outcome ("YOU WON" / "vs mason · 8,470", mint or rose) are one
+ * and the outcome ("YOU WON" / "vs rowan · 8,470", mint or rose) are one
  * block with different words — the same slot, the same weight.
  */
 function heroOps(

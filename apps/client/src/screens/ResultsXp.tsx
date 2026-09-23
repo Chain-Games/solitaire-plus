@@ -22,7 +22,7 @@ import { rankLabel } from '../shell/xp-view.js';
  *           badge and the banner MOUNT then, nothing in CSS waits for it) the new badge scales in with an
  *           overshoot, the bar snaps to the new span, the chip flips, the
  *           engine's halo fires (`fx.rankUp`) and the chime plays twice;
- *           "RANK UP · MASON" slams in letter by letter (18 ms apart) and
+ *           "RANK UP · RUN" slams in letter by letter (18 ms apart) and
  *           once it has retired (+1100 ms) the rank row returns, reading
  *           the new rank. The tray reserves the ceremony's height from the
  *           start so nothing but the badge moves.
@@ -54,7 +54,7 @@ export type Stage = 0 | 1 | 2 | 3; // none | shatter | revealed | banner retired
 const PART_LABELS: readonly [keyof XpGained['parts'], string][] = [
   ['played', 'played'],
   ['score', 'score'],
-  ['lines', 'lines'],
+  ['cards', 'cards'],
   ['levels', 'levels'],
   ['streak', 'streak'],
   ['challenge', 'challenge'],
@@ -380,7 +380,7 @@ export function RankUp({
   );
 }
 
-/** "RANK UP · MASON" in the banner's letter-slam (its delays run from the crossing, styles). */
+/** "RANK UP · RUN" in the banner's letter-slam (its delays run from the crossing, styles). */
 export function RankUpBanner({ to }: { to: Rank }) {
   const text = `RANK UP · ${to.name.toUpperCase()}`;
   let i = 0;

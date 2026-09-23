@@ -47,9 +47,9 @@ export function fallbackUrl(origin: string, code: string | null | undefined): st
 
 /** The upload's budget before the share goes out with the plain link instead. */
 const UPLOAD_TIMEOUT_MS = 4000;
-const FILE_NAME = 'blockari-score.jpg';
+const FILE_NAME = 'solitaire-plus-score.jpg';
 const FILE_MIME = 'image/jpeg';
-const SHARE_TITLE = 'Blockari';
+const SHARE_TITLE = 'Solitaire Plus';
 
 async function toBase64(blob: Blob): Promise<string> {
   const buf = new Uint8Array(await blob.arrayBuffer());

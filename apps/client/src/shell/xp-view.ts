@@ -20,12 +20,12 @@ import type { UserProfile, XpGained, XpProgress } from '../api/client.js';
 
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'] as const;
 
-/** "III" for tier 3 (tiers run 1–5; Legend's further passes are in the name). */
+/** "III" for tier 3 (tiers run 1–5; Klondike's further passes are in the name). */
 export function tierLabel(tier: number): string {
   return ROMAN[tier] ?? String(tier);
 }
 
-/** "Mason III" — the rank name with its tier ("Legend II · III" past the ladder). */
+/** "Run III" — the rank name with its tier ("Klondike II · III" past the ladder). */
 export function rankLabel(rank: Rank): string {
   const sep = rank.name.includes(' ') ? ' · ' : ' ';
   return `${rank.name}${sep}${tierLabel(rank.tier)}`;
@@ -58,7 +58,7 @@ export function rankAtIndex(index: number, tier = RULES.xpRankSpan): Rank {
 /**
  * The account as it stood just BEFORE crossing into rank `to`: the old
  * rank's top tier, its last level, the bar held full on that span ("21,000 /
- * 21,000 · 0 to Mason I"). What every placement reads until the reveal.
+ * 21,000 · 0 to Run I"). What every surface reads until the reveal.
  */
 export function progressBefore(to: number): {
   rank: Rank;
@@ -101,7 +101,7 @@ export function xpDemo(): boolean {
   return demoCached;
 }
 
-/** Demo: the signed-in user carries the fixture's progress too, so every placement agrees with the hero. */
+/** Demo: the signed-in user carries the fixture's progress too, so every surface agrees with the hero. */
 export function demoUser<T extends { username: string }>(u: T): T & XpProgress {
   const d = demoProfile(u.username);
   return {
@@ -114,7 +114,7 @@ export function demoUser<T extends { username: string }>(u: T): T & XpProgress {
   };
 }
 
-/** Demo profile: a mid-rank account (Mason II, 26,300 / 28,800 XP; `&xpLevel=n` picks another level) with fixed lifetime counts — the same numbers in every frame. */
+/** Demo profile: a mid-rank account (Run II, 26,300 / 28,800 XP; `&xpLevel=n` picks another level) with fixed lifetime counts — the same numbers in every frame. */
 export function demoProfile(username: string): UserProfile {
   let level = 12;
   try {
@@ -157,12 +157,12 @@ const DEMO_MONEY = (() => {
 /**
  * Demo XP for a finished game: the sim's own parts for the breakdown (as a
  * challenge game, plus a streak so the itemisation has every line), and the
- * account placed so the count crosses into a new RANK (Brick V → Mason I)
+ * account placed so the count crosses into a new RANK (Deal V → Run I)
  * about a third of the way through — the ceremony every time.
  */
 export function demoGained(b: ScoreBreakdown): XpGained {
   const award = xpForGame(
-    { ...b, endReason: 'timeout', placements: Math.max(1, b.placements), bestStreak: 4 },
+    { ...b, endReason: 'timeout', moves: Math.max(1, b.moves), bestStreak: 4 },
     { challenge: true, won: null, pot: 0 },
   );
   const parts = award.total > 0 ? award.parts : { ...ZERO_XP_PARTS, played: 50 };

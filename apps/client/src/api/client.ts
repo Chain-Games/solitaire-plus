@@ -26,7 +26,7 @@ async function call<T>(
 ): Promise<T> {
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['content-type'] = 'application/json';
-  if (TOUCH) headers['x-blockari-touch'] = '1';
+  if (TOUCH) headers['x-solitaire-touch'] = '1';
   const res = await fetch(path, {
     method,
     credentials: 'same-origin',

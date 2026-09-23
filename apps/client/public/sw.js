@@ -1,9 +1,9 @@
 /* global self, URL */
 /*
- * Blockari service worker: Web Push and nothing else. No fetch handler, no
+ * Solitaire Plus service worker: Web Push and nothing else. No fetch handler, no
  * cache — the app loads from the network exactly as it does without a
  * worker, so a deploy changes nothing here. A push shows the payload the
- * server sent ({ title, body, url, tag }); a tap focuses an open Blockari
+ * server sent ({ title, body, url, tag }); a tap focuses an open Solitaire Plus
  * tab on that URL, or opens one.
  */
 
@@ -22,7 +22,7 @@ self.addEventListener('push', (event) => {
   } catch {
     data = { body: event.data ? event.data.text() : '' };
   }
-  const title = data.title || 'Blockari';
+  const title = data.title || 'Solitaire Plus';
   const url = data.url || '/';
   event.waitUntil(
     self.registration.showNotification(title, {

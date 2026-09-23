@@ -46,7 +46,7 @@ export function LevelChip({ level }: { level: number | undefined }) {
   );
 }
 
-/** One player of the VS block: the large badge over the name, then ONE line "MASON I · XP LV 12". */
+/** One player of the VS block: the large badge over the name, then ONE line "RUN I · XP LV 12". */
 function PlayerSide({
   name,
   level,

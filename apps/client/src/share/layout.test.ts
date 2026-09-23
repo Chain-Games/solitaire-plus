@@ -22,23 +22,29 @@ import {
   type TextOp,
 } from './layout.js';
 
-/** The owner's screenshot: 9,520 with a 4X streak, 23 lines, level 8, time's up. */
+/** A typical five-minute run: 9,520 with a 4X streak, 23 cards home, level 8, time's up. */
 const B: ScoreBreakdown = {
+  foundation: 2300,
+  reveals: 1050,
+  tableau: 420,
+  streak: 5000,
   base: 8770,
   streakBonus: 750,
-  colorBonus: 0,
+  clearBonus: 0,
+  timeBonus: 0,
   total: 9520,
   bestStreak: 4,
-  colorLines: 0,
-  linesCleared: 23,
-  placements: 73,
-  elapsedMs: 180_000,
+  cardsHome: 23,
+  revealed: 21,
+  moves: 73,
+  undos: 2,
+  elapsedMs: 300_000,
   endReason: 'timeout',
   levelReached: 8,
 };
 
 const USER = { username: 'guest_x', xpLevel: 2, rank: rankFor(2) };
-const HOST = 'blockari.testnet.chaingames.io';
+const HOST = 'solitaire.testnet.chaingames.io';
 const ORIGIN = `https://${HOST}`;
 
 /** The three states a card tells: the dare, the win, the loss (solo is `challenge: undefined`). */
@@ -47,13 +53,13 @@ const WON: CardChallenge = {
   status: 'complete',
   code: 'AGB2BS',
   entryFee: 100,
-  result: { won: true, payout: 200, opponent: { username: 'mason', score: 8470 } },
+  result: { won: true, payout: 200, opponent: { username: 'rowan', score: 8470 } },
 };
 const LOST: CardChallenge = {
   status: 'complete',
   code: 'AGB2BS',
   entryFee: 100,
-  result: { won: false, payout: 0, opponent: { username: 'mason', score: 12_400 } },
+  result: { won: false, payout: 0, opponent: { username: 'rowan', score: 12_400 } },
 };
 
 function input(over: Partial<CardInput> = {}): CardInput {
@@ -84,20 +90,20 @@ const inside = (o: { x: number; y: number; w: number; h: number }, box: typeof o
 describe('share text', () => {
   it('dares with the code for an open challenge and states the run for solo', () => {
     expect(shareText(9520, OPEN, HOST)).toBe(
-      'I scored 9,520 in Blockari. Same pieces, 3 minutes — beat me: AGB2BS',
+      'I scored 9,520 in Solitaire Plus. Same deal, 5 minutes — beat me: AGB2BS',
     );
-    expect(shareText(9520, null, HOST)).toBe('I scored 9,520 in Blockari. Same pieces, 3 minutes.');
+    expect(shareText(9520, null, HOST)).toBe('I scored 9,520 in Solitaire Plus. Same deal, 5 minutes.');
     expect(shareText(120, undefined, HOST)).toBe(
-      'I scored 120 in Blockari. Same pieces, 3 minutes.',
+      'I scored 120 in Solitaire Plus. Same deal, 5 minutes.',
     );
   });
 
   it('tells the result of a settled challenge and never its code', () => {
     expect(shareText(9520, WON, HOST)).toBe(
-      `I scored 9,520 on Blockari and won 200 $CHAIN — play free: ${HOST}`,
+      `I scored 9,520 on Solitaire Plus and won 200 $CHAIN — play free: ${HOST}`,
     );
     // A loss keeps to the score: the card says the rest.
-    expect(shareText(9520, LOST, HOST)).toBe(`I scored 9,520 on Blockari — play free: ${HOST}`);
+    expect(shareText(9520, LOST, HOST)).toBe(`I scored 9,520 on Solitaire Plus — play free: ${HOST}`);
     for (const c of [WON, LOST]) expect(shareText(9520, c, HOST)).not.toContain('AGB2BS');
     expect(takeCode(OPEN)).toBe('AGB2BS');
     expect(takeCode(WON)).toBeNull();
@@ -106,17 +112,17 @@ describe('share text', () => {
 
   it('labels how the run ended, the stats, the account line and the pot', () => {
     expect(endLabel(B, true)).toBe("TIME'S UP");
-    expect(endLabel({ ...B, endReason: 'stuck' }, false)).toBe('OUT OF MOVES');
+    expect(endLabel({ ...B, endReason: 'cleared' }, false)).toBe('DECK CLEARED');
     expect(endLabel({ ...B, endReason: 'forfeit' }, false)).toBe('RUN OVER');
     expect(endLabel({ ...B, endReason: 'forfeit' }, true)).toBe('FORFEITED');
     expect(statTiles(B).map((t) => `${t.label} ${t.value}`)).toEqual([
-      'LINES 23',
+      'CARDS HOME 23/52',
       'BEST STREAK 4X',
       'LEVEL LV 8',
     ]);
     expect(statTiles(B)[2]!.tone).toBe('mint');
-    expect(rankLine(USER)).toBe('PEBBLE II · XP LV 2');
-    expect(rankLine({ username: 'm', xpLevel: 12, rank: rankFor(12) })).toBe('MASON II · XP LV 12');
+    expect(rankLine(USER)).toBe('PIP II · XP LV 2');
+    expect(rankLine({ username: 'm', xpLevel: 12, rank: rankFor(12) })).toBe('RUN II · XP LV 12');
     expect(potCopy(100, 9520)).toEqual({
       eyebrow: 'BEAT 9,520 TO WIN',
       value: '200',
@@ -129,7 +135,7 @@ describe('share text', () => {
       eyebrow: 'YOU WON',
       value: '+200',
       unit: '$CHAIN',
-      sub: 'vs mason · 8,470',
+      sub: 'vs rowan · 8,470',
       tone: 'mint',
       coin: true,
     });
@@ -138,7 +144,7 @@ describe('share text', () => {
       eyebrow: 'YOU LOST',
       value: '\u2212100',
       unit: '$CHAIN',
-      sub: 'vs mason · 12,400',
+      sub: 'vs rowan · 12,400',
       tone: 'rose',
       coin: false,
     });
@@ -178,7 +184,7 @@ describe('card layout', () => {
     },
   );
 
-  it('story: the plate covers the painted board and leaves the logo, Fuji and the pagoda clear', () => {
+  it("story: the plate covers the painting's foot and leaves the logo clear", () => {
     const plate = one(layoutCard(input()).ops, 'plate');
     expect(plate.y).toBeGreaterThanOrEqual(1000);
     expect(plate.y - plate.fade).toBeGreaterThan(830);
@@ -390,7 +396,7 @@ describe('card layout', () => {
       expect(link.text).toBe(`${HOST}/take?code=AGB2BS`);
       expect(byId(L.ops, 'link-2')).toBeUndefined();
       const plate = one(L.ops, 'plate');
-      const longHost = 'a-very-long-subdomain.blockari.testnet.chaingames.io';
+      const longHost = 'a-very-long-subdomain.solitaire.testnet.chaingames.io';
       const long = byId(layoutCard(input({ size, host: longHost })).ops, 'link')!;
       expect(long.size).toBeLessThan(link.size + 1);
       // The estimate's width at the chosen size fits the plate.
@@ -465,7 +471,7 @@ describe('card layout', () => {
         expect(byId(L.ops, 'outcome-unit')!.x).toBeGreaterThan(hero.x);
         const vs = byId(L.ops, 'outcome-sub')!;
         expect(vs).toMatchObject({ tone: 'dim', face: 'body', y: byId(open.ops, 'pot-sub')!.y });
-        expect(vs.text).toBe(`vs mason · ${ch === WON ? '8,470' : '12,400'}`);
+        expect(vs.text).toBe(`vs rowan · ${ch === WON ? '8,470' : '12,400'}`);
         // The coin rides the win's number; a loss has none.
         const coin = coinOn(L.ops, hero.y - CAP_MID_EM * hero.size);
         if (ch === WON) {

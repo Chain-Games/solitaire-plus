@@ -32,7 +32,7 @@ interface Settings {
   setSsaaCap: (cap: number | null) => void;
 }
 
-const KEY = 'blockari.settings';
+const KEY = 'solitaire.settings';
 
 type Saved = Pick<Settings, 'quality' | 'sound' | 'volumes' | 'haptics'>;
 

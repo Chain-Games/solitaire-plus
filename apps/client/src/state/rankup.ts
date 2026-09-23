@@ -11,8 +11,8 @@ import type { User } from '../api/client.js';
  * replays the full ceremony once, on its first visit after the crossing.
  *
  * Persistence (localStorage, per user id):
- *   blockari.rank.seen.<id>      the rank index last shown; a rise arms a crossing
- *   blockari.rank.ceremony.<id>  the rank index whose profile ceremony has played
+ *   solitaire.rank.seen.<id>      the rank index last shown; a rise arms a crossing
+ *   solitaire.rank.ceremony.<id>  the rank index whose profile ceremony has played
  *
  * `?rankUp=1` arms a crossing into the current rank on every load (capture
  * fixture) without touching storage.
@@ -77,8 +77,8 @@ function phaseAt(ms: number): CrossingPhase {
   return ms < MINI_REVEAL_MS ? 'hold' : ms < MINI_REVEAL_MS + RING_SWEEP_MS ? 'reveal' : 'settled';
 }
 
-const SEEN = 'blockari.rank.seen.';
-const CEREMONY = 'blockari.rank.ceremony.';
+const SEEN = 'solitaire.rank.seen.';
+const CEREMONY = 'solitaire.rank.ceremony.';
 
 function readIndex(key: string): number | null {
   try {

@@ -4,7 +4,7 @@ import { Icons } from './ui.js';
 
 /** Once dismissed, the card stays away this long. */
 const SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
-const KEY = 'blockari.push.prompt';
+const KEY = 'solitaire.push.prompt';
 
 function snoozed(): boolean {
   try {
@@ -26,7 +26,7 @@ function snooze(): void {
 /**
  * The one ask, on the challenge page the creator lands on: "Get told when
  * someone takes it" with [Turn on notifications] — or, on iOS Safari in the
- * browser, how to add Blockari to the Home Screen, which is the only way
+ * browser, how to add Solitaire Plus to the Home Screen, which is the only way
  * push reaches an iPhone. Dismissible; stays away a week; gone for good
  * once notifications are on, blocked or impossible here.
  */
@@ -63,7 +63,7 @@ export function PushPrompt({ force }: { force?: PushState | undefined }) {
       </b>
       {state === 'needs-install' ? (
         <span className="pp-body">
-          Add Blockari to your Home Screen to get notifications: tap{' '}
+          Add Solitaire Plus to your Home Screen to get notifications: tap{' '}
           <b className="nowrap">
             Share{' '}
             <span className="pp-glyph">
@@ -74,7 +74,7 @@ export function PushPrompt({ force }: { force?: PushState | undefined }) {
         </span>
       ) : (
         <>
-          <span className="pp-body">Even with Blockari closed — and when the match settles.</span>
+          <span className="pp-body">Even with Solitaire Plus closed — and when the match settles.</span>
           <button className="btn primary sm" onClick={() => void turnOn()} disabled={busy}>
             {busy ? 'Asking…' : 'Turn on notifications'}
           </button>

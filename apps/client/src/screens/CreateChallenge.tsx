@@ -51,8 +51,8 @@ export function CreateChallenge() {
           <span className="chip amber">Set the bar</span>
         </div>
         <p className="panel-lede">
-          You pay the entry fee and play a fresh seed right now. The challenge then waits up to 24
-          hours for someone to take it — they play the exact same pieces. Winner takes both fees.
+          You pay the entry fee and play a fresh deal right now. The challenge then waits up to 24
+          hours for someone to take it — they play the exact same deal. Winner takes both fees.
         </p>
         <div className="stack">
           <div>
@@ -82,7 +82,7 @@ export function CreateChallenge() {
               `Stake ${fee} $CHAIN and play`
             )}
           </button>
-          <Note>Your game starts right away: three minutes on the clock, no pauses.</Note>
+          <Note>Your game starts right away: five minutes on the clock, no pauses.</Note>
         </div>
       </div>
     </div>

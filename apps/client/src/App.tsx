@@ -110,7 +110,7 @@ function Shell() {
         className={`topbar${home && !heroGone ? ' brand-hidden' : ''}${scrolled ? ' scrolled' : ''}`}
       >
         <div className="topbar-inner">
-          <Link to="/" className="brand" aria-label="Blockari home">
+          <Link to="/" className="brand" aria-label="Solitaire Plus home">
             <img
               className="brand-mark"
               src="/brand/mark-64.png"

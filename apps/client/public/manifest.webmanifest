@@ -1,13 +1,13 @@
 {
-  "name": "Blockari",
-  "short_name": "Blockari",
-  "description": "Head-to-head block puzzle. Same seed, same pieces, best score wins.",
+  "name": "Solitaire Plus",
+  "short_name": "Solitaire+",
+  "description": "Head-to-head Klondike solitaire. Same deal, five minutes, best score wins.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0b0d1a",
-  "theme_color": "#0b0d1a",
+  "background_color": "#06110d",
+  "theme_color": "#06110d",
   "icons": [
     { "src": "/brand/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "/brand/icon-512.png", "sizes": "512x512", "type": "image/png" },

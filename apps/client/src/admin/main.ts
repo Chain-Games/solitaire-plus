@@ -1,5 +1,5 @@
 /**
- * Blockari — Control. A read-only view of who is playing, how well, on what.
+ * Solitaire Plus — Control. A read-only view of who is playing, how well, on what.
  *
  * The whole page comes from `/api/admin/overview` in one call, so every
  * number on it agrees with every other. Plain DOM and hand-drawn SVG: there
@@ -12,7 +12,7 @@
 
 import './admin.css';
 
-const STORE_TOKEN = 'blockari.admin.token';
+const STORE_TOKEN = 'solitaire.admin.token';
 const REFRESH_MS = 30_000;
 
 /* ------------------------------------------------------------------ types -- */
@@ -35,7 +35,7 @@ interface Overview {
     chainStaked: number;
   };
   gamesPerDay: { day: string; games: number; players: number }[];
-  howGamesEnd: { timeout: number; stuck: number; forfeit: number };
+  howGamesEnd: { cleared: number; timeout: number; forfeit: number };
   scoreSpread: { label: string; games: number }[];
   levelsReached: { level: string; games: number }[];
   ranks: { rank: string; players: number }[];
@@ -52,7 +52,7 @@ interface Overview {
     username: string;
     score: number;
     level: number;
-    lines: number;
+    cards: number;
     endReason: string;
     fee: number | null;
     endedAt: string;
@@ -113,8 +113,8 @@ const flag = (code: string): string =>
 
 /** How a game ended, as the sim names it — a state, so a status hue *and* a word. */
 const END: Record<string, { label: string; tone: 'mint' | 'amber' | 'rose' }> = {
-  timeout: { label: 'Clock ran out', tone: 'mint' },
-  stuck: { label: 'No room left', tone: 'amber' },
+  cleared: { label: 'Deck cleared', tone: 'mint' },
+  timeout: { label: 'Clock ran out', tone: 'amber' },
   forfeit: { label: 'Forfeit', tone: 'rose' },
 };
 
@@ -345,7 +345,7 @@ function table(head: string[], body: Cell[][], numeric: number[] = []): HTMLElem
   return scroll;
 }
 
-/** Tiers within a rank read as the game shows them: Pebble I … Pebble V. */
+/** Tiers within a rank read as the game shows them: Pip I … Pip V. */
 const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
 function rankChip(rank: Rank): HTMLElement {
@@ -387,7 +387,7 @@ function setToken(value: string): void {
 
 function titleNode(): HTMLElement {
   const title = el('h1', 'head__title');
-  title.append(el('span', undefined, 'Blockari'), el('span', 'head__word', 'Control'));
+  title.append(el('span', undefined, 'Solitaire Plus'), el('span', 'head__word', 'Control'));
   return title;
 }
 
@@ -474,7 +474,7 @@ function render(data: Overview): void {
   /* 2 · totals */
   grid.append(
     stat('Players', fmt(t.players), `registered · ${fmt(t.guests)} guests`),
-    stat('Games played', fmt(t.gamesPlayed), 'finished with at least one piece placed'),
+    stat('Games played', fmt(t.gamesPlayed), 'finished with at least one move made'),
     stat(
       'Best score',
       fmt(t.bestScore),
@@ -518,7 +518,7 @@ function render(data: Overview): void {
 
   /* 4 · how games end */
   const endCard = card('How games end', 'States, each with its word beside the colour.', 4);
-  const ends = (['timeout', 'stuck', 'forfeit'] as const).map((k) => ({
+  const ends = (['cleared', 'timeout', 'forfeit'] as const).map((k) => ({
     label: END[k]?.label ?? k,
     value: data.howGamesEnd[k],
     colour: `var(--c-${END[k]?.tone ?? 'mint'})`,
@@ -564,7 +564,7 @@ function render(data: Overview): void {
   grid.append(levelCard);
 
   /* 7 · ranks */
-  const rankCard = card('Ranks', 'Every account on the ladder, Pebble to Legend.', 6);
+  const rankCard = card('Ranks', 'Every account on the ladder, Pip to Klondike.', 6);
   rankCard.append(
     data.ranks.some((r) => r.players > 0)
       ? rows(
@@ -628,12 +628,12 @@ function render(data: Overview): void {
   recentCard.append(
     data.recentGames.length > 0
       ? table(
-          ['Player', 'Score', 'Level', 'Lines', 'Ended', 'Fee', 'When'],
+          ['Player', 'Score', 'Level', 'Cards home', 'Ended', 'Fee', 'When'],
           data.recentGames.map((g) => [
             g.username,
             el('span', 'score', fmt(g.score)),
             String(g.level),
-            fmt(g.lines),
+            `${fmt(g.cards)}/52`,
             endTag(g.endReason),
             g.fee === null ? el('span', 'dim', 'practice') : `${fmt(g.fee)} $CHAIN`,
             el('span', 'dim', ago(g.endedAt)),

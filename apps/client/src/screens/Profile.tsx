@@ -34,7 +34,7 @@ import { RankUp, RankUpBanner, type Stage } from './ResultsXp.js';
  * replays the full ceremony once, IN the badge's own slot — the stage is an
  * overlay on the 72 px slot, the banner an overlay on the rank line — so the
  * card never re-lays out (the AD's reserved-slot rule): the old badge
- * shatters where it lives, "RANK UP · MASON" slams in where the rank line
+ * shatters where it lives, "RANK UP · RUN" slams in where the rank line
  * was, then the slot's badge takes over and the row returns. The hero reads
  * the state before the crossing until the reveal. Never again for that rank.
  */

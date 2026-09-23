@@ -163,7 +163,7 @@ export function TakeChallenge() {
           </div>
           <p className="panel-lede">
             Pick a fee and you are matched with the oldest open challenge at that stake. You play
-            their exact seed — same pieces, same order. Beat their score to take the pot.
+            their exact deal — same cards, same order. Beat their score to take the pot.
           </p>
           <div className="stack">
             <div ref={picker}>

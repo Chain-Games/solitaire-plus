@@ -34,7 +34,7 @@ function reducedMotion(): boolean {
    -------------------------------------------------------------------------- */
 
 const LOGO = {
-  master: '/brand/logo.png',
+  master: '/brand/logo-1179.png',
   l1024: '/brand/logo-1024.png',
   l640: '/brand/logo-640.png',
   l320: '/brand/logo-320.png',
@@ -67,7 +67,7 @@ export function Logo({
       sizes={`${size}px`}
       width={size}
       height={height}
-      alt="Blockari"
+      alt="Solitaire Plus"
       decoding="async"
       loading={priority ? 'eager' : 'lazy'}
       fetchPriority={priority ? 'high' : 'auto'}
@@ -254,7 +254,7 @@ export const CUBE = {
   pipHalf: 3.2,
 } as const;
 
-/** Max pips drawn: tiers past five (Legend) show the numeral instead. */
+/** Max pips drawn: tiers past five (Klondike) show the numeral instead. */
 export const PIP_MAX = 5;
 /** Below this size the badge is the cube alone (no pips, no light): 18–40 px are plain marks. */
 export const PIPS_FROM = 56;
@@ -262,9 +262,9 @@ export const PIPS_FROM = 56;
 /**
  * Rank badge: a faceted block in the rank's colour — the same cube language
  * as the tiles (top face lifted, side faces in shade, a rim light and one
- * specular) — with the tier as pips under it (1–5) or a numeral for Legend's
+ * specular) — with the tier as pips under it (1–5) or a numeral for Klondike's
  * open-ended tiers. Reads at 18/24/40/72 px; below 56 the pips and the
- * light are dropped and the cube fills the box. Legend wears a slow shimmer
+ * light are dropped and the cube fills the box. Klondike wears a slow shimmer
  * (transform only).
  */
 export function RankBadge({
@@ -277,7 +277,7 @@ export function RankBadge({
   rank: Rank;
   size?: number;
   className?: string | undefined;
-  /** Tooltip; defaults to "Mason III". */
+  /** Tooltip; defaults to "Run III". */
   title?: string | undefined;
   /** The session user's own badge: a fired rank crossing plays the miniature ceremony on it. */
   mine?: boolean;
@@ -454,7 +454,7 @@ export function useCrossingHold(
 }
 
 /**
- * The rank's name ("Mason III") wherever it sits beside a badge. `mine`: on
+ * The rank's name ("Run III") wherever it sits beside a badge. `mine`: on
  * a fired crossing it reads the OLD name until the miniature's reveal, then
  * flips to the new one like the split-flap (whole word, 90 ms).
  */
@@ -570,7 +570,7 @@ export function PlayerTag({
 
 /**
  * The XP bar: the level's span (prevThreshold → nextThreshold) with the fill
- * in the rank's colour, "1,240 / 1,800 XP · 560 to Mason III" under it. The
+ * in the rank's colour, "1,240 / 1,800 XP · 560 to Run III" under it. The
  * fill is a transform (never a width tween); `pulse` flashes the cool
  * level-up pulse when it changes.
  */
@@ -1046,30 +1046,230 @@ export function Empty({
   );
 }
 
-/** An empty board with one mint piece hovering over it, in the mini-board dialect. */
+/** An empty table: two dashed slots and one mint-edged card hovering over them, in the mini-card dialect. */
 function EmptyBoardArt() {
   return (
-    <MiniBoard
-      cols={6}
-      rows={5}
+    <MiniCards
       size={120}
-      cells={[
-        [3, 0, '#3de6c9'],
-        [4, 0, '#3de6c9'],
-        [4, 1, '#3de6c9'],
+      aspect={100 / 120}
+      slots={[
+        [20, 44, 0],
+        [64, 44, 0],
       ]}
-      ghost={[
-        [4, 3, ''],
-        [5, 3, ''],
-        [5, 4, ''],
-      ]}
-      glow="rgba(61,230,201,0.6)"
+      cards={[{ x: 42, y: 20, rot: -8, rank: 'A', suit: 'S', ghost: true }]}
+      glow="rgba(61,230,201,0.55)"
     />
   );
 }
 
 /* --------------------------------------------------------------------------
-   Mini-board glyphs for the mode cards and steps
+   Mini-card glyphs for the mode cards, the steps and empty states
+   -------------------------------------------------------------------------- */
+
+export type Suit = 'S' | 'H' | 'D' | 'C';
+
+/** One card in a glyph: its top-left corner and tilt in the 100-unit box, a face or the back. */
+export interface MiniCard {
+  x: number;
+  y: number;
+  /** Degrees about the card's centre. */
+  rot?: number;
+  rank?: string;
+  suit?: Suit;
+  /** The royal-navy back with its gold rule (the table's card back). */
+  back?: boolean;
+  /** Outlined in mint over a faint fill: a card about to land. */
+  ghost?: boolean;
+}
+
+/** An empty pile: a dashed slot's top-left corner and tilt. */
+export type MiniSlot = readonly [x: number, y: number, rot: number];
+
+/** Card size in glyph units (the table's 5:7 card). */
+const MC_W = 36;
+const MC_H = 50;
+const MC_R = 4.2;
+
+/** Suit pips drawn in a 10 × 10 box (never a font glyph: every face renders the same). */
+function SuitPip({ suit, x, y, s }: { suit: Suit; x: number; y: number; s: number }) {
+  const fill = suit === 'H' || suit === 'D' ? 'var(--c-crimson)' : '#16201b';
+  const t = `translate(${x} ${y}) scale(${s / 10})`;
+  if (suit === 'H')
+    return (
+      <path
+        transform={t}
+        fill={fill}
+        d="M5 9.4C5 9.4 0 5.9 0 3.1 0 1.4 1.3 0 2.9 0 3.9 0 4.6.6 5 1.4 5.4.6 6.1 0 7.1 0 8.7 0 10 1.4 10 3.1 10 5.9 5 9.4 5 9.4Z"
+      />
+    );
+  if (suit === 'D') return <path transform={t} fill={fill} d="M5 0 9 5 5 10 1 5Z" />;
+  if (suit === 'S')
+    return (
+      <path
+        transform={t}
+        fill={fill}
+        d="M5 0C5 0 0 3.7 0 6.2 0 7.6 1.1 8.6 2.4 8.6 3.3 8.6 4 8.1 4.4 7.4L3.6 10H6.4L5.6 7.4C6 8.1 6.7 8.6 7.6 8.6 8.9 8.6 10 7.6 10 6.2 10 3.7 5 0 5 0Z"
+      />
+    );
+  return (
+    <g transform={t} fill={fill}>
+      <circle cx={5} cy={2.6} r={2.5} />
+      <circle cx={2.5} cy={6.1} r={2.5} />
+      <circle cx={7.5} cy={6.1} r={2.5} />
+      <path d="M4.4 5.6 3.6 10H6.4L5.6 5.6Z" />
+    </g>
+  );
+}
+
+function CardFace({ c, id }: { c: MiniCard; id: string }) {
+  const red = c.suit === 'H' || c.suit === 'D';
+  return (
+    <>
+      <rect width={MC_W} height={MC_H} rx={MC_R} fill={`url(#${id}-face)`} />
+      <rect
+        x={0.5}
+        y={0.5}
+        width={MC_W - 1}
+        height={MC_H - 1}
+        rx={MC_R - 0.5}
+        fill="none"
+        stroke={c.ghost ? '#3de6c9' : '#000'}
+        strokeOpacity={c.ghost ? 0.9 : 0.28}
+        strokeWidth={c.ghost ? 1.4 : 0.8}
+        strokeDasharray={c.ghost ? '3 2.5' : undefined}
+      />
+      {c.rank && (
+        <text
+          x={4}
+          y={12.5}
+          fontFamily="Rajdhani, 'Space Grotesk', sans-serif"
+          fontWeight={700}
+          fontSize={12.5}
+          fill={red ? 'var(--c-crimson)' : '#16201b'}
+        >
+          {c.rank}
+        </text>
+      )}
+      {c.suit && <SuitPip suit={c.suit} x={4.2} y={15} s={6.4} />}
+      {c.suit && <SuitPip suit={c.suit} x={MC_W / 2 - 8} y={MC_H / 2 - 5} s={16} />}
+    </>
+  );
+}
+
+function CardBack({ id }: { id: string }) {
+  return (
+    <>
+      <rect width={MC_W} height={MC_H} rx={MC_R} fill={`url(#${id}-back)`} />
+      <rect
+        x={3}
+        y={3}
+        width={MC_W - 6}
+        height={MC_H - 6}
+        rx={MC_R - 1.6}
+        fill="none"
+        stroke="var(--c-amber)"
+        strokeOpacity={0.85}
+        strokeWidth={1}
+      />
+      <path
+        d={`M${MC_W / 2} ${MC_H / 2 - 9} L${MC_W / 2 + 6.5} ${MC_H / 2} L${MC_W / 2} ${MC_H / 2 + 9} L${MC_W / 2 - 6.5} ${MC_H / 2}Z`}
+        fill="none"
+        stroke="var(--c-amber)"
+        strokeOpacity={0.9}
+        strokeWidth={1.1}
+      />
+      <circle cx={MC_W / 2} cy={MC_H / 2} r={2} fill="var(--c-amber)" />
+      <rect
+        x={0.5}
+        y={0.5}
+        width={MC_W - 1}
+        height={MC_H - 1}
+        rx={MC_R - 0.5}
+        fill="none"
+        stroke="#000"
+        strokeOpacity={0.4}
+        strokeWidth={0.8}
+      />
+    </>
+  );
+}
+
+let miniCardsSeq = 0;
+
+/**
+ * A tiny table rendered from the palette: dashed empty piles and cards — an
+ * ivory face with its corner index and centre pip, or the royal-navy back
+ * with its gold rule — each with a soft drop shadow. The mode cards, the
+ * how-it-works steps and the empty states all speak this dialect.
+ */
+export function MiniCards({
+  cards,
+  slots = [],
+  size = 72,
+  aspect = 1,
+  glow,
+}: {
+  cards: readonly MiniCard[];
+  slots?: readonly MiniSlot[];
+  size?: number;
+  /** Height over width of the glyph's box (1 = square, the mode-card box). */
+  aspect?: number;
+  /** Drop-shadow glow colour for the cards. */
+  glow?: string;
+}) {
+  const [id] = useState(() => `mc${++miniCardsSeq}`);
+  const vh = 100 * aspect;
+  const place = (x: number, y: number, rot = 0) =>
+    `translate(${x} ${y}) rotate(${rot} ${MC_W / 2} ${MC_H / 2})`;
+  return (
+    <svg
+      viewBox={`0 0 100 ${vh}`}
+      width={size}
+      height={Math.round(size * aspect)}
+      aria-hidden
+    >
+      <defs>
+        <linearGradient id={`${id}-face`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#fffaf0" />
+          <stop offset="1" stopColor="#efe6d2" />
+        </linearGradient>
+        <radialGradient id={`${id}-back`} cx="0.5" cy="0.45" r="0.75">
+          <stop offset="0" stopColor="#2a52a8" />
+          <stop offset="0.55" stopColor="var(--c-navy)" />
+          <stop offset="1" stopColor="#0c1c46" />
+        </radialGradient>
+      </defs>
+      {slots.map(([x, y, rot], i) => (
+        <rect
+          key={`s${i}`}
+          transform={place(x, y, rot)}
+          width={MC_W}
+          height={MC_H}
+          rx={MC_R}
+          fill="rgb(var(--ink-rgb) / 0.35)"
+          stroke="rgb(var(--text-rgb) / 0.28)"
+          strokeWidth={1}
+          strokeDasharray="3 2.5"
+        />
+      ))}
+      <g style={glow ? { filter: `drop-shadow(0 0 6px ${glow})` } : undefined}>
+        {cards.map((c, i) => (
+          <g
+            key={`c${i}`}
+            transform={place(c.x, c.y, c.rot)}
+            style={{ filter: 'drop-shadow(0 1.5px 1.5px rgb(0 0 0 / 0.45))' }}
+            opacity={c.ghost ? 0.92 : 1}
+          >
+            {c.back ? <CardBack id={id} /> : <CardFace c={c} id={id} />}
+          </g>
+        ))}
+      </g>
+    </svg>
+  );
+}
+
+/* --------------------------------------------------------------------------
+   Mini-board glyph (the inherited block dialect; the game's pause card still uses it)
    -------------------------------------------------------------------------- */
 
 export type Cell = readonly [x: number, y: number, color: string];
@@ -1113,8 +1313,8 @@ export function MiniBoard({
           width={tile}
           height={tile}
           rx={r}
-          fill="#14172c"
-          stroke="#1f2440"
+          fill="#0a2a20"
+          stroke="#1f5a47"
           strokeWidth={0.8}
         />,
       );

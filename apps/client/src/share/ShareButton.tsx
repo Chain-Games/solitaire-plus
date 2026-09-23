@@ -66,7 +66,7 @@ export function ShareButton({
   );
 }
 
-const DOWNLOAD_NAME = 'blockari-score.jpg';
+const DOWNLOAD_NAME = 'solitaire-plus-score.jpg';
 
 /** The preview dialog: the story card scaled to fit, copy link / download / copy text. */
 function SharePreview({
@@ -115,7 +115,7 @@ function SharePreview({
           <p className="lede">
             {unfurls
               ? 'Paste the link anywhere\u00a0— it unfurls into this card.'
-              : 'Post the image with the link\u00a0— it opens Blockari.'}
+              : 'Post the image with the link\u00a0— it opens Solitaire Plus.'}
           </p>
           <button className="btn ghost block" onClick={onClose} autoFocus>
             Done

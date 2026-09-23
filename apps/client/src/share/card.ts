@@ -35,15 +35,15 @@ export type RenderShareCardOptions = CardInput;
 
 /** CSS custom property → fallback (styles.css `:root`). */
 const TOKEN_FALLBACK = {
-  '--c-bg': '#0b0d1a',
-  '--c-bg-deep': '#05060d',
-  '--c-rim': '#242a4a',
-  '--c-text': '#f2f4ff',
-  '--c-text-dim': '#8b90b8',
+  '--c-bg': '#06110d',
+  '--c-bg-deep': '#030907',
+  '--c-rim': '#1f5a47',
+  '--c-text': '#f5f1e6',
+  '--c-text-dim': '#9fb5a8',
   '--c-mint': '#3de6c9',
-  '--c-amber': '#ffb84d',
+  '--c-amber': '#ffc53d',
   '--c-rose': '#ff5c8a',
-  '--c-indigo': '#7c6bff',
+  '--c-indigo': '#6d8cff',
   '--font-display': "'Rajdhani', 'Space Grotesk', system-ui, sans-serif",
   '--font-body': "'Space Grotesk', system-ui, sans-serif",
   '--rank-0': '#c4cde6',
@@ -69,7 +69,7 @@ function token(name: Token): string {
 
 /** The badge's three faces, mirrored from `.rank-badge` (styles.css). */
 const FACE_MIX = { topWhite: 0.24, rightBlack: 0.4 } as const;
-/** Ranks whose faces the stylesheet sets by hand: Pebble's cold slate and Legend's white-gold. */
+/** Ranks whose faces the stylesheet sets by hand: Pip's cold slate and Klondike's white-gold. */
 const FACE_OVERRIDE: Record<number, { top: string; left: string; right: string; rim: string }> = {
   0: { top: '#e6ecff', left: '#c4cde6', right: '#7f8ab0', rim: 'rgba(255,255,255,0.6)' },
   8: { top: '#f4f1ff', left: '#ffe2a8', right: '#b89a00', rim: '#f5d90a' },
@@ -90,11 +90,11 @@ const BADGE_LIGHT = { blur: 0.18, alpha: 0.45 } as const;
  * every side (3: the 160 tile then fits 4 px cells, a 132 px symbol with a
  * 14 px margin; scanners want ≥ 2, the spec says 4, the light tile forgives).
  */
-const QR = { tile: '#f4f6ff', module: '#0b0d1a', level: 'M', quiet: 3 } as const;
+const QR = { tile: '#fbf6ea', module: '#06110d', level: 'M', quiet: 3 } as const;
 
 /** Surfaces on the plate (the shell's `.code` slab and a tinted panel), as alphas over ink and the tone. */
 const SURFACE = {
-  slabFill: 'rgba(5,6,13,0.45)',
+  slabFill: 'rgba(3,9,7,0.45)',
   slabEdgeAlpha: 0.45,
   slabEdgeW: 3,
   slabDash: [14, 10] as [number, number],
@@ -529,7 +529,7 @@ class Painter {
         ctx.closePath();
         ctx.fillStyle = lit ? rank : p.rim;
         ctx.fill();
-        ctx.strokeStyle = lit ? mixOklab(rank, '#ffffff', PIP_STROKE_MIX) : 'rgba(5,6,13,0.6)';
+        ctx.strokeStyle = lit ? mixOklab(rank, '#ffffff', PIP_STROKE_MIX) : 'rgba(2,7,5,0.6)';
         ctx.lineWidth = 0.8;
         ctx.stroke();
       }

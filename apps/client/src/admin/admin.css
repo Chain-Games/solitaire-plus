@@ -1,10 +1,10 @@
 /* ==========================================================================
-   Blockari — Control (the admin dashboard).
+   Solitaire Plus — Control (the admin dashboard).
 
    Dark only, on purpose: it is read by one or two people on the same machine
    the game is tested on, and the game has no light mode. The tokens below are
    a copy of the ones this page needs from src/styles.css (the game's design
-   system) so the page sits in Blockari's family without importing the game's
+   system) so the page sits in Solitaire Plus's family without importing the game's
    stylesheet — the dashboard shares no code with the game.
 
    Charts: one hue per magnitude chart (length carries the comparison); the
@@ -17,34 +17,34 @@
   color-scheme: dark;
 
   /* --- copied from styles.css ------------------------------------------- */
-  --c-bg: #0b0d1a;
-  --c-bg-deep: #05060d;
-  --c-plate-top: #171b36;
-  --c-plate-bottom: #0f1226;
-  --c-rim: #242a4a;
-  --c-text: #f2f4ff;
-  --c-text-dim: #8b90b8;
+  --c-bg: #06110d;
+  --c-bg-deep: #030907;
+  --c-plate-top: #0f3a2e;
+  --c-plate-bottom: #082419;
+  --c-rim: #1f5a47;
+  --c-text: #f5f1e6;
+  --c-text-dim: #9fb5a8;
   --c-mint: #3de6c9;
-  --c-amber: #ffb84d;
+  --c-amber: #ffc53d;
   --c-rose: #ff5c8a;
   --c-indigo: #7c6bff;
   --c-sky: #4fb3ff;
   --mint-rgb: 61 230 201;
-  --amber-rgb: 255 184 77;
+  --amber-rgb: 255 197 61;
   --rose-rgb: 255 92 138;
   --sky-rgb: 79 179 255;
-  --text-rgb: 242 244 255;
-  --ink-rgb: 5 6 13;
+  --text-rgb: 245 241 230;
+  --ink-rgb: 3 9 7;
 
-  --rank-0: #c4cde6; /* Pebble */
-  --rank-1: #7c6bff; /* Brick */
-  --rank-2: #4fb3ff; /* Mason */
-  --rank-3: #3de6c9; /* Builder */
-  --rank-4: #a3e635; /* Architect */
-  --rank-5: #ffd60a; /* Keystone */
-  --rank-6: #ff8c3a; /* Monolith */
-  --rank-7: #ff5c8a; /* Titan */
-  --rank-8: #ffeaa6; /* Legend */
+  --rank-0: #c4cde6; /* Pip */
+  --rank-1: #7c6bff; /* Deal */
+  --rank-2: #4fb3ff; /* Run */
+  --rank-3: #3de6c9; /* Stack */
+  --rank-4: #a3e635; /* Cascade */
+  --rank-5: #ffd60a; /* Tableau */
+  --rank-6: #ff8c3a; /* Foundation */
+  --rank-7: #ff5c8a; /* Royal */
+  --rank-8: #ffeaa6; /* Klondike */
 
   --bg: var(--c-bg);
   --text: var(--c-text);
@@ -195,13 +195,13 @@ input {
 }
 
 .btn--primary {
-  background: var(--accent);
+  background: var(--c-amber);
   border-color: transparent;
-  color: var(--c-bg-deep);
+  color: #2a1a00;
 }
 
 .btn--primary:hover {
-  background: #62efd7;
+  background: #ffd66e;
 }
 
 .btn[disabled] {
@@ -681,7 +681,7 @@ tbody tr:hover td {
   transform: translate(12px, 12px);
   padding: 8px 10px;
   border-radius: var(--r-sm);
-  background: rgb(23 27 54 / 0.96);
+  background: rgb(8 36 25 / 0.96);
   border: 1px solid var(--panel-edge);
   box-shadow: var(--el-1);
   font-size: 12px;

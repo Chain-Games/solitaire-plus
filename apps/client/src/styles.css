@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Blockari shell design system.
+   Solitaire Plus shell design system.
 
    The React shell (lobby, dialogs, forms) belongs to the same table as the
    Pixi playfield: dark luminous ground, glass slabs with a 1 px inner
@@ -25,9 +25,25 @@
   --c-crimson: #d7263d;
   --c-navy: #1f3f86;
   --c-rose: #ff5c8a;
-  --c-indigo: #7c6bff;
+  /* the navy family's light voice (was Blockari's indigo): chips, the XP bar's cool end */
+  --c-indigo: #6d8cff;
   --c-warm-white: #ffe8c8;
-  /* piece hues (PIECE_COLORS), for glyphs and accents */
+  /* the logo's gold, as a bevel: the primary button's ramp and its ink */
+  --c-gold-hi: #ffe28a;
+  --c-gold-lo: #d9951c;
+  --c-gold-ink: #2a1a00;
+  /* shell ground: the felt's lit centre and a royal-navy corner */
+  --c-glow-top: #0f3a2c;
+  --c-glow-corner: #0b1c42;
+  /* the plain button: a raised felt slab */
+  --c-btn-top: #164a3b;
+  --c-btn-bottom: #0d2f25;
+  /* the segmented thumb: one step brighter than the button */
+  --c-thumb-top: #1c5a48;
+  --c-thumb-bottom: #113a2e;
+  /* ink-dark glass for trays over the playfield */
+  --tray-rgb: 8 36 25;
+  /* accent hues, for glyphs and rank colours */
   --c-gold: #ffd60a;
   --c-sky: #4fb3ff;
   --c-lime: #a3e635;
@@ -38,22 +54,22 @@
   --mint-rgb: 61 230 201;
   --amber-rgb: 255 197 61;
   --rose-rgb: 255 92 138;
-  --indigo-rgb: 124 107 255;
+  --indigo-rgb: 109 140 255;
   --sky-rgb: 79 179 255;
   --text-rgb: 245 241 230;
   --warm-rgb: 255 232 200;
   --ink-rgb: 3 9 7;
 
   /* --- ranks (account XP; render/palette.ts RANK_COLORS), cool → hot → white-gold */
-  --rank-0: #c4cde6; /* Pebble    cold slate (lifted well clear of text-dim) */
-  --rank-1: #7c6bff; /* Brick     indigo */
-  --rank-2: #4fb3ff; /* Mason     sky */
-  --rank-3: #3de6c9; /* Builder   mint */
-  --rank-4: #a3e635; /* Architect lime */
-  --rank-5: #ffd60a; /* Keystone  gold */
-  --rank-6: #ff8c3a; /* Monolith  orange */
-  --rank-7: #ff5c8a; /* Titan     rose */
-  --rank-8: #ffeaa6; /* Legend    white-gold (the wash, chip and bar); the cube's top face is cold white */
+  --rank-0: #c4cde6; /* Pip       cold slate (lifted well clear of text-dim) */
+  --rank-1: #7c6bff; /* Deal      indigo */
+  --rank-2: #4fb3ff; /* Run       sky */
+  --rank-3: #3de6c9; /* Stack     mint */
+  --rank-4: #a3e635; /* Cascade   lime */
+  --rank-5: #ffd60a; /* Tableau   gold */
+  --rank-6: #ff8c3a; /* Foundation orange */
+  --rank-7: #ff5c8a; /* Royal     rose */
+  --rank-8: #ffeaa6; /* Klondike  white-gold (the wash, chip and bar); the cube's top face is cold white */
   --rank-0-rgb: 196 205 230;
   --rank-1-rgb: 124 107 255;
   --rank-2-rgb: 79 179 255;
@@ -73,6 +89,11 @@
   --text-dim: var(--c-text-dim);
   --accent: var(--c-mint);
   --accent-warm: var(--c-amber);
+  /* The brand primary is the logo's gold (owner's pick); mint stays the WIN / positive colour. */
+  --brand: var(--c-amber);
+  --brand-rgb: var(--amber-rgb);
+  --primary-bg: linear-gradient(180deg, var(--c-gold-hi) 0%, var(--c-amber) 45%, var(--c-gold-lo) 100%);
+  --primary-fg: var(--c-gold-ink);
   --danger: var(--c-rose);
   --indigo: var(--c-indigo);
   --panel: var(--c-plate-bottom);
@@ -237,8 +258,8 @@ body,
 body {
   overflow-x: hidden;
   background:
-    radial-gradient(1200px 800px at 50% -10%, #1a1f45 0%, transparent 60%),
-    radial-gradient(900px 600px at 100% 100%, #16123a 0%, transparent 55%), var(--bg);
+    radial-gradient(1200px 800px at 50% -10%, var(--c-glow-top) 0%, transparent 60%),
+    radial-gradient(900px 600px at 100% 100%, var(--c-glow-corner) 0%, transparent 55%), var(--bg);
 }
 
 h1,
@@ -351,8 +372,8 @@ button {
   overflow: hidden;
   /* The body's ground until Pixi's first frame, so nothing ever paints flat black. */
   background:
-    radial-gradient(1200px 800px at 50% -10%, #1a1f45 0%, transparent 60%),
-    radial-gradient(900px 600px at 100% 100%, #16123a 0%, transparent 55%), var(--bg);
+    radial-gradient(1200px 800px at 50% -10%, var(--c-glow-top) 0%, transparent 60%),
+    radial-gradient(900px 600px at 100% 100%, var(--c-glow-corner) 0%, transparent 55%), var(--bg);
 }
 
 .backdrop canvas {
@@ -1038,7 +1059,7 @@ button {
    ========================================================================== */
 
 .btn {
-  --btn-bg: linear-gradient(180deg, #1f2448, #171b36);
+  --btn-bg: linear-gradient(180deg, var(--c-btn-top), var(--c-btn-bottom));
   --btn-fg: var(--text);
   --btn-edge: var(--line-strong);
   --btn-shadow: var(--el-1);
@@ -1101,18 +1122,19 @@ button {
 }
 
 .btn.primary {
-  --btn-bg: linear-gradient(180deg, #5df0d6 0%, var(--c-mint) 45%, #22b89f 100%);
-  --btn-fg: #05221d;
+  --btn-bg: var(--primary-bg);
+  --btn-fg: var(--primary-fg);
   --btn-edge: transparent;
   --btn-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.45), inset 0 -2px 0 rgb(var(--ink-rgb) / 0.25),
-    0 8px 20px -8px rgb(var(--mint-rgb) / 0.6);
-  --btn-glow: 0 12px 36px -8px rgb(var(--mint-rgb) / 0.7);
+    inset 0 1px 0 rgb(255 255 255 / 0.5), inset 0 -2px 0 rgb(var(--ink-rgb) / 0.25),
+    0 8px 20px -8px rgb(var(--brand-rgb) / 0.6);
+  --btn-glow: 0 12px 36px -8px rgb(var(--brand-rgb) / 0.7);
 }
 
 .btn.warm {
-  --btn-bg: linear-gradient(180deg, #ffd08a 0%, var(--c-amber) 45%, #e08f1e 100%);
-  --btn-fg: #2a1800;
+  /* the stake: the primary's gold, a shade deeper toward copper so the two never read as one */
+  --btn-bg: linear-gradient(180deg, #ffd27a 0%, #f5b02e 45%, #c9761a 100%);
+  --btn-fg: var(--c-gold-ink);
   --btn-edge: transparent;
   --btn-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.45), inset 0 -2px 0 rgb(var(--ink-rgb) / 0.25),
@@ -1440,7 +1462,7 @@ input[aria-invalid='true']:focus {
   width: 18px;
   height: 18px;
   border-radius: 50%;
-  background: linear-gradient(180deg, #fff, #c9cde6);
+  background: linear-gradient(180deg, #fff, #e6dcc6);
   box-shadow: 0 1px 3px rgb(var(--ink-rgb) / 0.8);
   transition: transform var(--t-base) var(--ease-spring);
 }
@@ -1490,7 +1512,7 @@ input[aria-invalid='true']:focus {
   left: 4px;
   width: calc((100% - 8px) / var(--n));
   border-radius: calc(var(--r-md) - 4px);
-  background: linear-gradient(180deg, #262c58, #1c2144);
+  background: linear-gradient(180deg, var(--c-thumb-top), var(--c-thumb-bottom));
   border: 1px solid rgb(var(--mint-rgb) / 0.45);
   box-shadow:
     var(--inset-hi),
@@ -1717,7 +1739,7 @@ input[aria-invalid='true']:focus {
 .chip.indigo,
 .tag.indigo {
   background: rgb(var(--indigo-rgb) / 0.18);
-  color: #b3a9ff;
+  color: #b6c6ff;
 }
 
 .chip.lg {
@@ -1833,7 +1855,7 @@ input[aria-invalid='true']:focus {
 }
 
 .spinner.dark {
-  background: conic-gradient(from 0deg, transparent 0 20%, #05221d 100%);
+  background: conic-gradient(from 0deg, transparent 0 20%, var(--c-gold-ink) 100%);
 }
 
 @keyframes spin {
@@ -1970,8 +1992,8 @@ input[aria-invalid='true']:focus {
   }
 }
 
-/* The ambient glow behind the logo: two soft discs in the palette's accent
-   and indigo, breathing slowly. It is a compositor layer (transform/opacity). */
+/* The ambient glow behind the logo: two soft discs in the logo's gold and
+   royal navy, breathing slowly. It is a compositor layer (transform/opacity). */
 .hero-logo::before {
   content: '';
   position: absolute;
@@ -1982,12 +2004,12 @@ input[aria-invalid='true']:focus {
   background:
     radial-gradient(
       45% 50% at 50% 55%,
-      rgb(var(--mint-rgb) / calc(0.28 * (1 - var(--world-cover, 0) * 0.85))),
+      rgb(var(--amber-rgb) / calc(0.2 * (1 - var(--world-cover, 0) * 0.85))),
       transparent 70%
     ),
     radial-gradient(
       60% 55% at 50% 60%,
-      rgb(var(--indigo-rgb) / calc(0.35 * (1 - var(--world-cover, 0) * 0.85))),
+      rgb(31 63 134 / calc(0.55 * (1 - var(--world-cover, 0) * 0.85))),
       transparent 75%
     );
   animation: glow-breathe 6s var(--ease-in-out) infinite;
@@ -2011,7 +2033,7 @@ input[aria-invalid='true']:focus {
   width: 100%;
   height: auto;
   filter: drop-shadow(0 18px 30px rgb(var(--ink-rgb) / 0.85))
-    drop-shadow(0 0 28px rgb(var(--sky-rgb) / 0.35));
+    drop-shadow(0 0 28px rgb(var(--amber-rgb) / 0.22));
 }
 
 .hero-tagline {
@@ -2038,8 +2060,8 @@ input[aria-invalid='true']:focus {
   margin: 0 10px;
   vertical-align: middle;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px rgb(var(--mint-rgb) / 0.9);
+  background: var(--brand);
+  box-shadow: 0 0 8px rgb(var(--brand-rgb) / 0.9);
 }
 
 @media (max-width: 640px) {
@@ -2054,7 +2076,7 @@ input[aria-invalid='true']:focus {
 .hero-tagline em {
   font-style: normal;
   color: var(--text);
-  text-shadow: 0 0 18px rgb(var(--mint-rgb) / 0.35);
+  text-shadow: 0 0 18px rgb(var(--brand-rgb) / 0.35);
 }
 
 .hero-tagline .dot {
@@ -2064,8 +2086,8 @@ input[aria-invalid='true']:focus {
   margin: 0 10px;
   vertical-align: middle;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 8px rgb(var(--mint-rgb) / 0.9);
+  background: var(--brand);
+  box-shadow: 0 0 8px rgb(var(--brand-rgb) / 0.9);
 }
 
 .hero-cta {
@@ -3227,7 +3249,7 @@ input[aria-invalid='true']:focus {
   pointer-events: auto;
   padding: var(--s-4);
   border-radius: var(--r-xl);
-  background: rgb(15 18 38 / 0.92);
+  background: rgb(var(--tray-rgb) / 0.92);
   border: 1px solid var(--c-rim);
   box-shadow: var(--el-3);
   animation: rise-in 420ms var(--ease-spring) both;
@@ -3241,7 +3263,7 @@ input[aria-invalid='true']:focus {
   padding: calc(var(--s-3) + var(--dock-r) / 2) var(--s-4) var(--s-4);
   border-top: 0;
   border-radius: 0 0 var(--dock-r) var(--dock-r);
-  background: rgb(15 18 38 / 0.85);
+  background: rgb(var(--tray-rgb) / 0.85);
   box-shadow:
     0 24px 48px -16px rgb(var(--ink-rgb) / 0.9),
     0 60px 120px -40px rgb(var(--ink-rgb) / 1);

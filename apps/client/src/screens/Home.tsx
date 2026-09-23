@@ -8,7 +8,7 @@ import {
   Avatar,
   Icons,
   Logo,
-  MiniBoard,
+  MiniCards,
   Odometer,
   RankBadge,
   RankName,
@@ -18,51 +18,31 @@ import {
   rankClass,
   timeAgo,
   useCrossingHold,
-  type Cell,
+  type MiniCard,
 } from '../shell/ui.js';
 import { progressBefore } from '../shell/xp-view.js';
 import { openTutorial } from '../tutorial/guide.js';
 import { statusLabel } from './ChallengeDetail.js';
 
-const MINT = '#3de6c9';
-const AMBER = '#ffb84d';
-const ROSE = '#ff5c7a';
-const SKY = '#4fb3ff';
-const INDIGO = '#6a5cff';
-const DIM = '#2a2f58';
-
-/** Practice: a mint L on a quiet board. */
-const SOLO_CELLS: readonly Cell[] = [
-  [1, 1, MINT],
-  [1, 2, MINT],
-  [1, 3, MINT],
-  [2, 3, MINT],
-  [0, 4, DIM],
-  [3, 4, DIM],
-  [4, 4, DIM],
+/** Practice: a fanned hand, the ace of spades on top. */
+const SOLO_CARDS: readonly MiniCard[] = [
+  { x: 12, y: 28, rot: -18, back: true },
+  { x: 52, y: 28, rot: 18, back: true },
+  { x: 32, y: 21, rank: 'A', suit: 'S' },
 ];
 
-/** Create: an amber square dropped into a row about to clear. */
-const CREATE_CELLS: readonly Cell[] = [
-  [0, 4, SKY],
-  [1, 4, SKY],
-  [2, 4, INDIGO],
-  [3, 3, AMBER],
-  [4, 3, AMBER],
-  [3, 4, AMBER],
-  [4, 4, AMBER],
-  [0, 3, DIM],
+/** Create: the stock, and the king of hearts dealt off it. */
+const CREATE_CARDS: readonly MiniCard[] = [
+  { x: 8, y: 31, back: true },
+  { x: 11, y: 27, back: true },
+  { x: 14, y: 23, back: true },
+  { x: 50, y: 26, rot: 10, rank: 'K', suit: 'H' },
 ];
 
-/** Take: two colours face off across the board. */
-const TAKE_CELLS: readonly Cell[] = [
-  [0, 0, ROSE],
-  [1, 0, ROSE],
-  [0, 1, ROSE],
-  [4, 4, MINT],
-  [3, 4, MINT],
-  [4, 3, MINT],
-  [2, 2, DIM],
+/** Take: two aces face off. */
+const TAKE_CARDS: readonly MiniCard[] = [
+  { x: 14, y: 27, rot: -14, rank: 'A', suit: 'H' },
+  { x: 50, y: 23, rot: 14, rank: 'A', suit: 'S' },
 ];
 
 export function Home() {
@@ -76,12 +56,12 @@ export function Home() {
         </div>
         <p className="hero-tagline">
           <span className="phrase">
-            Same seed
+            Same deal
             <span className="dot" />
-            Same pieces
+            Same draws
           </span>
           <span className="phrase">
-            Three minutes
+            Five-min clock
             <span className="dot" />
             <em>Best score wins</em>
           </span>
@@ -106,11 +86,11 @@ export function Home() {
           onClick={launchSolo}
         >
           <span className="mode-glyph">
-            <MiniBoard cells={SOLO_CELLS} glow="rgba(61,230,201,0.6)" />
+            <MiniCards cards={SOLO_CARDS} glow="rgba(61,230,201,0.55)" />
           </span>
           <span className="tag">Solo</span>
           <h3>Practice</h3>
-          <p>A random seed, no fee, no opponent. Pause any time.</p>
+          <p>A random deal, no fee, no opponent. Pause any time.</p>
           <span className="cta">Play now</span>
         </Link>
         <Link
@@ -119,11 +99,11 @@ export function Home() {
           style={{ '--k': 1 } as CSSProperties}
         >
           <span className="mode-glyph">
-            <MiniBoard cells={CREATE_CELLS} hot={[]} glow="rgba(255,184,77,0.6)" />
+            <MiniCards cards={CREATE_CARDS} glow="rgba(255,197,61,0.55)" />
           </span>
           <span className="tag">Create</span>
           <h3>Create Challenge</h3>
-          <p>Stake $CHAIN, play your seed, and wait for a challenger to beat your score.</p>
+          <p>Stake $CHAIN, play your deal, and wait for a challenger to beat your score.</p>
           <span className="cta">Set the bar</span>
         </Link>
         <Link
@@ -132,11 +112,11 @@ export function Home() {
           style={{ '--k': 2 } as CSSProperties}
         >
           <span className="mode-glyph">
-            <MiniBoard cells={TAKE_CELLS} glow="rgba(255,92,122,0.6)" />
+            <MiniCards cards={TAKE_CARDS} glow="rgba(255,92,138,0.55)" />
           </span>
           <span className="tag">Take</span>
           <h3>Take Challenge</h3>
-          <p>Match an open challenge. You get their exact pieces. Beat them.</p>
+          <p>Match an open challenge. You get their exact deal. Beat them.</p>
           <span className="cta">Find a match</span>
         </Link>
       </div>
@@ -177,52 +157,43 @@ function HowItWorks() {
     <div className="panel">
       <div className="panel-head">
         <h3>How it works</h3>
-        <span className="chip indigo">3:00 on the clock</span>
+        <span className="chip indigo">5:00 on the clock</span>
       </div>
       <div className="steps">
         <div className="step">
-          <MiniBoard
+          <MiniCards
             size={56}
-            cells={[
-              [0, 4, SKY],
-              [1, 4, SKY],
-              [2, 4, SKY],
-              [2, 3, SKY],
+            cards={[
+              { x: 6, y: 25, rot: -6, rank: '7', suit: 'D' },
+              { x: 58, y: 25, rot: 6, rank: '7', suit: 'D' },
             ]}
           />
           <div>
             <span className="step-n">01</span>
-            <b>Same seed</b>
-            <span>Both players get the identical piece sequence. No luck, only play.</span>
+            <b>Same deal</b>
+            <span>Both players get the identical card sequence. No luck, only play.</span>
           </div>
         </div>
         <div className="step">
-          <MiniBoard
+          <MiniCards
             size={56}
-            cells={[
-              [0, 3, INDIGO],
-              [1, 3, INDIGO],
-              [2, 3, MINT],
-              [3, 3, MINT],
+            cards={[
+              { x: 32, y: 4, rank: 'K', suit: 'S' },
+              { x: 32, y: 21, rank: 'Q', suit: 'H' },
+              { x: 32, y: 38, rank: 'J', suit: 'C' },
             ]}
-            hot={[[4, 3, '']]}
           />
           <div>
             <span className="step-n">02</span>
-            <b>Clear lines</b>
-            <span>Fill rows or columns to clear them. Chain clears for a streak multiplier.</span>
+            <b>Send cards home</b>
+            <span>Draw one, build down, send cards home. Chain plays home for a streak.</span>
           </div>
         </div>
         <div className="step">
-          <MiniBoard
+          <MiniCards
             size={56}
-            cells={[
-              [1, 1, AMBER],
-              [2, 1, AMBER],
-              [1, 2, AMBER],
-              [2, 2, AMBER],
-            ]}
-            glow="rgba(255,184,77,0.6)"
+            cards={[{ x: 32, y: 25, rank: 'K', suit: 'H' }]}
+            glow="rgba(255,197,61,0.6)"
           />
           <div>
             <span className="step-n">03</span>
