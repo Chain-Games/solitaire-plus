@@ -251,6 +251,21 @@ describe('streak', () => {
     expect(s.score).toBe(2 * RULES.foundationPoints + RULES.revealPoints + RULES.streakStep);
   });
 
+  it('five foundation plays keep a streak only when they really come within the window', () => {
+    const cards = ['6C', '5C', '4C', '3C', '2C', 'AC'];
+    // Stamped 1 s apart: a 5X streak.
+    let s = layout({ tableau: [cards] });
+    for (let i = 0; i < 5; i++) s = home(tick(s, 1000).state, 't0', 0);
+    expect(s.streak).toBe(5);
+    // The same five after a 40 s think, re-stamped at the real clock (the
+    // server's stale-move bound forces it): the window broke on the first.
+    let r = home(layout({ tableau: [cards] }), 't0', 0);
+    r = tick(r, 40_000).state;
+    for (let i = 0; i < 4; i++) r = home(tick(r, 40).state, 't0', 0);
+    expect(r.streak).toBe(4);
+    expect(r.bestStreak).toBe(4);
+  });
+
   it('the step stops growing at the cap', () => {
     const cards = ['K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2', 'A'].map(
       (r) => `${r}C`,

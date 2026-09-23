@@ -131,13 +131,19 @@ export async function appendMoves(
         throw badRequest('bad-move', 'move is ahead of the wall clock');
       lastT = m.tMs;
     }
-    // Replayed one move at a time: a move that shows a card for the first
-    // time, or ends the game, is sent the moment it is made (the client
-    // waits on the reply), so its time may not be backdated past the wall
-    // clock: tMs >= wall-elapsed - tolerance. Otherwise a client could hold
-    // a reveal, think, and send it stamped early — or stamp a clear early for
-    // the time bonus and the tiebreak. A refused move is `stale-move`; the
-    // client re-stamps it at its current clock and resends.
+    // Every move has a lower bound on its time, so none can be backdated:
+    //   - a move that shows a card for the first time, or ends the game, is
+    //     sent the moment it is made (the client waits on the reply), so
+    //     tMs >= wall-elapsed - tolerance. Otherwise a client could hold a
+    //     reveal, think, and stamp it early, or stamp a clear early for the
+    //     time bonus and the tiebreak.
+    //   - a plain move rides a batch flushed every MOVE_BATCH_MS, so
+    //     tMs >= wall-elapsed - (MOVE_BATCH_MS + tolerance). Otherwise a
+    //     client could think for 40 s, then stamp a run of scoring moves
+    //     1 s apart and keep the streak window (6 s of game time) alive.
+    // A refused move is `stale-move`: the client re-stamps the unsent tail
+    // at its current clock and resends. Re-stamping can cost a streak; that
+    // is intended.
     let after: GameState = known;
     for (let i = 0; i < fresh.length; i++) {
       const m = fresh[i]!;
@@ -150,7 +156,8 @@ export async function appendMoves(
         throw err;
       }
       const bound = revealsIn(before, after).length > 0 || after.status !== 'playing';
-      if (bound && m.tMs < wallElapsed - cfg.CLOCK_TOLERANCE_MS)
+      const slack = cfg.CLOCK_TOLERANCE_MS + (bound ? 0 : cfg.MOVE_BATCH_MS);
+      if (m.tMs < wallElapsed - slack)
         throw conflict(
           'stale-move',
           `move ${existing.length + i} at ${m.tMs} ms is behind the wall clock (${wallElapsed} ms)`,

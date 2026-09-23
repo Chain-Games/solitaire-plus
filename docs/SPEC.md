@@ -273,7 +273,7 @@ qa/<screen>/        committed PNG captures for the critic (see §6)
    - The server replays it against the full deck and answers `{reveals:[{pos,card}], stateHash}`.
    - The client injects the reveal and applies the move.
    - The flip or draw animation starts on input and the face swaps in at the flip's midpoint (~120 ms), which hides a normal round trip. **Input is held until the reply lands** (see 4a): nothing is played on top of an unconfirmed reveal, so the move log stays strictly ordered.
-5. `tMs` is stamped at input, not when the reply arrives, so network latency never costs a player clock time.
+5. `tMs` is stamped at input, not when the reply arrives, so network latency never costs a player clock time. **Every move is lower-bounded too** (v2.1): a reveal- or finish-bound move needs `tMs ≥ wall − 2 s`, and a plain move `tMs ≥ wall − (MOVE_BATCH_MS 250 + 2 s)`. So no run of scoring moves can be backdated into the 6 s streak window after a long think. A stale batch gets `409 stale-move` and the client re-stamps the unsent tail at its current clock. **Re-stamping an offline batch can cost a streak; that is intended.**
    - The server keeps Blockari's checks: monotonic `tMs`, below 300 000, and ≤ wall-elapsed + 2 s.
    - A replay failure truncates to the longest valid prefix.
 6. The server's replay is the only score.

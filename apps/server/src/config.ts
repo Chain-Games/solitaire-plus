@@ -40,6 +40,12 @@ const schema = z.object({
     .default(10 * 60 * 1000),
   /** Slack added to the game clock before a playing game is force-finalised. */
   GAME_GRACE_MS: z.coerce.number().int().nonnegative().default(15_000),
+  /**
+   * The client's move-batch window: plain moves are flushed this often, so
+   * no honest plain move reaches the server older than this plus the
+   * tolerance (the lower bound in appendMoves).
+   */
+  MOVE_BATCH_MS: z.coerce.number().int().nonnegative().default(250),
   /** How far ahead of the server wall clock a submitted move's tMs may be. */
   CLOCK_TOLERANCE_MS: z.coerce.number().int().nonnegative().default(2_000),
   /**

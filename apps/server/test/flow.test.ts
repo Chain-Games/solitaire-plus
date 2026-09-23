@@ -387,6 +387,55 @@ suite('challenge flow', () => {
     expect(ok.reveals).toHaveLength(1);
   });
 
+  it('refuses plain moves stamped behind the batch window (no backdated streaks), accepts them re-stamped', async () => {
+    const A = client();
+    const me = await A<{ user: { id: string } }>('POST', '/api/auth/guest');
+    const created = await A<{ gameId: string }>('POST', '/api/challenges', { entryFee: 5 });
+    await A('POST', `/api/games/${created.json.gameId}/start`);
+    const game = await app.db.query.games.findFirst({ where: eq(games.id, created.json.gameId) });
+    const start = game!.startedAt!.getTime();
+    const strict = { ...cfg!, CLOCK_TOLERANCE_MS: 2000, MOVE_BATCH_MS: 250 };
+    const id = created.json.gameId;
+    const uid = me.json.user.id;
+    // Play honestly through one pass of the stock (every draw a reveal, each
+    // sent at once) and recycle: the second pass draws only cards already seen,
+    // so those draws are plain moves.
+    let n = 0;
+    for (let i = 0; i < 24; i++, n++) {
+      const t = 1000 + i * 500;
+      await appendMoves(
+        app.db,
+        strict,
+        id,
+        uid,
+        n,
+        [{ t: 'draw', tMs: t }],
+        new Date(start + t + 100),
+      );
+    }
+    await appendMoves(
+      app.db,
+      strict,
+      id,
+      uid,
+      n++,
+      [{ t: 'draw', tMs: 13_500 }],
+      new Date(start + 13_600),
+    );
+    // Think for 40 s, then send five plain moves stamped 1 s apart just after
+    // the last one: behind the batch window, refused, nothing stored.
+    const late = new Date(start + 53_600);
+    const backdated = [1, 2, 3, 4, 5].map((k) => ({ t: 'draw' as const, tMs: 13_500 + k * 1000 }));
+    await expect(appendMoves(app.db, strict, id, uid, n, backdated, late)).rejects.toMatchObject({
+      code: 'stale-move',
+    });
+    const stored = await app.db.query.games.findFirst({ where: eq(games.id, id) });
+    expect(stored!.moves).toHaveLength(n);
+    // Re-stamped at the current clock (inside the window) they are taken.
+    const fresh = [0, 1, 2, 3, 4].map((k) => ({ t: 'draw' as const, tMs: 53_400 + k * 40 }));
+    expect((await appendMoves(app.db, strict, id, uid, n, fresh, late)).count).toBe(n + 5);
+  });
+
   it('rejects a private challenge from matchmaking but allows it by code', async () => {
     const A = client();
     const B = client();
