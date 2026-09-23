@@ -15,10 +15,12 @@ import { authRoutes } from './routes/auth.js';
 import { challengeRoutes } from './routes/challenges.js';
 import { gameRoutes } from './routes/games.js';
 import { StreamRegistry, notificationRoutes } from './routes/notifications.js';
+import { practiceRoutes } from './routes/practice.js';
 import { pushRoutes } from './routes/push.js';
 import { shareRoutes } from './routes/share.js';
 import { userRoutes } from './routes/users.js';
 import { sweepChallenges } from './services/challenges.js';
+import { DealPools } from './services/deals.js';
 import { sweepGames } from './services/games.js';
 import { Notifier } from './services/notifier.js';
 import { MemoryNotifyBus } from './services/notify-bus.js';
@@ -61,6 +63,8 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<Fa
   );
   app.decorate('notifier', notifier);
   app.decorate('streams', streams);
+  const deals = new DealPools(redis, cfg, app.log);
+  app.decorate('deals', deals);
 
   await app.register(cors, { origin: cfg.PUBLIC_URL, credentials: true });
   await app.register(cookie);
@@ -99,6 +103,7 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<Fa
   await app.register(adminRoutes, { prefix: '/api/admin' });
   await app.register(notificationRoutes, { prefix: '/api/notifications', bus, streams });
   await app.register(pushRoutes, { prefix: '/api/push' });
+  await app.register(practiceRoutes, { prefix: '/api/practice' });
   // Full paths inside: /api/share, and /s/:id outside the API namespace so a
   // pasted link is short and the static fallback below never sees it.
   await app.register(shareRoutes);
@@ -148,8 +153,12 @@ export async function buildApp(cfg: Config, opts: BuildOptions = {}): Promise<Fa
   }, 30_000);
   sweeper.unref();
 
+  // Keep the solvable-deal pools topped up (a no-op for DEALS=any).
+  deals.start();
+
   app.addHook('onClose', async () => {
     clearInterval(sweeper);
+    await deals.stop();
     streams.closeAll();
     notifier.close();
     await redis.quit();

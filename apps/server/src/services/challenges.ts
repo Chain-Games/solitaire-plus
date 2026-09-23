@@ -4,7 +4,8 @@ import { ENTRY_FEES, type Config } from '../config.js';
 import type { Db, Tx } from '../db/index.js';
 import { challenges, games, users, type Challenge, type Game } from '../db/schema.js';
 import { badRequest, conflict, forbidden, notFound } from '../errors.js';
-import { newCode, newSeed } from '../ids.js';
+import { newCode } from '../ids.js';
+import type { DealPools } from './deals.js';
 import { credit, debit } from './economy.js';
 import { levelReachedOf } from './levels.js';
 import { notify } from './notifications.js';
@@ -31,14 +32,17 @@ export function assertValidFee(fee: number): void {
 export async function createChallenge(
   db: Db,
   cfg: Config,
+  deals: Pick<DealPools, 'popChallengeSeed'>,
   creatorId: string,
   entryFee: number,
   isPrivate: boolean,
   now = new Date(),
 ): Promise<{ challenge: Challenge; game: Game }> {
   assertValidFee(entryFee);
+  // A solver-verified seed from the pool (an unverified one if it is empty).
+  // Popped before the transaction: if that fails the seed is spent, never reused.
+  const { seed } = await deals.popChallengeSeed();
   return db.transaction(async (tx) => {
-    const seed = newSeed();
     const [game] = await tx.insert(games).values({ userId: creatorId, seed }).returning();
     if (!game) throw new Error('failed to create game');
     const [challenge] = await tx

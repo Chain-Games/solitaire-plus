@@ -39,6 +39,7 @@ export const challengeRoutes: FastifyPluginAsync = async (app) => {
     const { challenge, game } = await createChallenge(
       app.db,
       app.cfg,
+      app.deals,
       userId,
       body.data.entryFee,
       body.data.isPrivate,

@@ -3,6 +3,7 @@ import type Redis from 'ioredis';
 import type { Config } from './config.js';
 import type { Db } from './db/index.js';
 import type { StreamRegistry } from './routes/notifications.js';
+import type { DealPools } from './services/deals.js';
 import type { Notifier } from './services/notifier.js';
 import { unauthorized } from './errors.js';
 
@@ -20,6 +21,8 @@ declare module 'fastify' {
     notifier: Notifier;
     /** The open SSE streams, so a logout can close that session's. */
     streams: StreamRegistry;
+    /** The solvable-deal pools (challenge, practice) and their worker. */
+    deals: DealPools;
   }
 }
 

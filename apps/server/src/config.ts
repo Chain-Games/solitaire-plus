@@ -1,3 +1,4 @@
+import { SOLVER_MAX_NODES } from '@solitaire-plus/sim';
 import { z } from 'zod';
 
 /**
@@ -77,6 +78,21 @@ const schema = z.object({
   VAPID_PUBLIC_KEY: z.string().default(''),
   VAPID_PRIVATE_KEY: z.string().default(''),
   VAPID_SUBJECT: z.string().default(''),
+  /**
+   * Deals (docs/SPEC.md §2.1, §9 c). `solvable`: challenges and practice deal
+   * from Redis pools of seeds the sim's solver has solved, kept topped up by a
+   * background worker; an empty pool falls back to an unverified seed (and
+   * says so in the log). `any`: every deal is a fresh unverified seed.
+   */
+  DEALS: z.enum(['solvable', 'any']).default('solvable'),
+  /** The worker keeps each pool (challenge, practice) at least this full. */
+  DEAL_POOL_TARGET: z.coerce.number().int().nonnegative().default(64),
+  /** The solver's node budget per deal; past it the deal is "unknown" and rejected. */
+  SOLVER_MAX_NODES: z.coerce.number().int().positive().default(SOLVER_MAX_NODES),
+  /** How often the pool worker wakes. 0 = never (tests fill the pools by hand). */
+  DEAL_POOL_INTERVAL_MS: z.coerce.number().int().nonnegative().default(5_000),
+  /** Solver time one wake may spend, so topping up never hogs the process. */
+  DEAL_POOL_TICK_MS: z.coerce.number().int().positive().default(1_000),
 });
 
 export type Config = z.infer<typeof schema>;

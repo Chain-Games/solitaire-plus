@@ -77,3 +77,10 @@ export {
   margin,
 } from './ranking.js';
 export { stateHash, deckHash } from './hash.js';
+export {
+  type SolveVerdict,
+  type SolveResult,
+  type SolveOptions,
+  SOLVER_MAX_NODES,
+  solve,
+} from './solver.js';
