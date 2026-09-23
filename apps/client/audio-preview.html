@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Card cues</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        padding: 16px;
+        background: #0b1530;
+        color: #e8e2cf;
+        font:
+          14px/1.4 system-ui,
+          sans-serif;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0 0 12px;
+        color: #d9b45a;
+      }
+      h2 {
+        font-size: 14px;
+        margin: 20px 0 8px;
+        color: #d9b45a;
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      button {
+        background: #16244a;
+        color: inherit;
+        border: 1px solid #2d3f70;
+        border-radius: 6px;
+        padding: 8px 12px;
+        font: inherit;
+        cursor: pointer;
+      }
+      button:hover {
+        border-color: #d9b45a;
+      }
+      label {
+        display: inline-flex;
+        gap: 8px;
+        align-items: center;
+        margin-right: 16px;
+      }
+      table {
+        border-collapse: collapse;
+        margin-top: 8px;
+        font-variant-numeric: tabular-nums;
+      }
+      td,
+      th {
+        padding: 3px 10px;
+        border-bottom: 1px solid #22335e;
+        text-align: right;
+      }
+      td:first-child,
+      th:first-child {
+        text-align: left;
+      }
+      .muted {
+        color: #8d94ad;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Solitaire Plus: card cues</h1>
+    <p class="muted">
+      Dev only. Each button calls the game's AudioEngine the way the playfield does
+      (<code>audio.cue(name)</code>).
+    </p>
+    <div id="mix"></div>
+    <h2>Card cues</h2>
+    <div class="row" id="cues"></div>
+    <h2>Foundation by rank</h2>
+    <div class="row" id="ranks"></div>
+    <h2>Cascade</h2>
+    <div class="row" id="cascade"></div>
+    <h2>Blockari reference</h2>
+    <div class="row" id="ref"></div>
+    <h2>Levels (decoded files, at manifest gain, on the SFX bus)</h2>
+    <button id="measure">Measure</button>
+    <div id="levels"></div>
+    <script type="module" src="/src/audio-preview.ts"></script>
+  </body>
+</html>

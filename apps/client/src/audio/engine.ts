@@ -1,11 +1,15 @@
-import type { GameEvent } from '@solitaire-plus/sim';
+import type { GameEvent, PileId } from '@solitaire-plus/sim';
 import { assetUrl } from '../assets.js';
-import { haptic } from './haptics.js';
+import type { CardCueId } from './cardfx.js';
+import { type HapticKind, haptic } from './haptics.js';
 import { SynthCues } from './synth.js';
 
 /**
  * Event-driven audio. Subscribes to sim events and plays a cue per event;
- * never inspects state. The values it takes from outside the event stream
+ * never inspects state. Solitaire Plus is Blockari's engine with the card
+ * cues added (docs/SPEC.md §8): the music, stems, ambience, clock close,
+ * streak / level / countdown / results / coin cues are Blockari's as they
+ * were; the playfield's card sounds are `cue(name)` (see CARD CUES below). The values it takes from outside the event stream
  * are pushed to it: the streak heat (`setHeat`), the streak level
  * (`setStreak`, also derived from `scored` / `streakBroken`), the clock
  * (`setClock`, for the last-20-seconds low-pass) and the world (`setWorld`,
@@ -61,6 +65,76 @@ interface Manifest {
   readonly version: number;
   readonly cues: Record<string, ManifestEntry>;
 }
+
+/**
+ * What `handle` accepts: the sim's events, plus the controller's own
+ * (`revealed` / `pending` / `resync`, which make no sound). Structural, so the
+ * audio does not import the game layer.
+ */
+export type AudioEvent = GameEvent | { readonly type: 'revealed' | 'pending' | 'resync' };
+
+/**
+ * CARD CUES — the names the playfield passes to `cue(name, arg?)`, and the
+ * file each one plays (public/audio/sfx/<file>, rendered by tools/cardfx from
+ * src/audio/cardfx.ts):
+ *
+ *   card-place   card-place        a card settles on a tableau pile   (haptic tick)
+ *   card-flip    card-flip         a face-down card turns up
+ *   card-draw    card-draw         stock -> waste
+ *   recycle      recycle           waste back to the stock
+ *   foundation   foundation + foundation-tone, the tone pitched up the
+ *                major scale by `arg` = rank 1..13 when given, else up a
+ *                pentatonic by the current streak                    (haptic tap)
+ *   return       return            off a foundation                   (haptic tick)
+ *   cascade      cascade + foundation-tone, one rising step per call;
+ *                see `cascadeCue` for the one-call-starts-a-run mode  (haptic tick)
+ *   shuffle      shuffle           the deal-in
+ *   rejected     card-reject       an illegal drop snapping back      (haptic thump)
+ *   undo         undo
+ *
+ * Until the playfield sends a name, the matching sim event plays it (moved,
+ * flipped, drew, recycled, undone, scored{foundation}, dealt); the first
+ * `cue(name)` takes that name over for the session, deduped against an event
+ * that played it within CONTACT_DEDUP_S — one sound per card either way.
+ */
+export type CardCue =
+  | 'card-place'
+  | 'card-flip'
+  | 'card-draw'
+  | 'recycle'
+  | 'foundation'
+  | 'return'
+  | 'cascade'
+  | 'shuffle'
+  | 'rejected'
+  | 'undo';
+
+const CARD_CUE_FILE: Readonly<Record<CardCue, CardCueId>> = {
+  'card-place': 'card-place',
+  'card-flip': 'card-flip',
+  'card-draw': 'card-draw',
+  recycle: 'recycle',
+  foundation: 'foundation',
+  return: 'return',
+  cascade: 'cascade',
+  shuffle: 'shuffle',
+  rejected: 'card-reject',
+  undo: 'undo',
+};
+
+const CARD_HAPTIC: Partial<Record<CardCue, HapticKind>> = {
+  'card-place': 'tick',
+  foundation: 'tap',
+  return: 'tick',
+  cascade: 'tick',
+  rejected: 'thump',
+};
+
+function isCardCueName(name: string): name is CardCue {
+  return Object.prototype.hasOwnProperty.call(CARD_CUE_FILE, name);
+}
+
+const isFoundationPile = (p: PileId): boolean => p[0] === 'f';
 
 export type ResultsBeat =
   'burst' | 'digit' | 'row' | 'done' | 'outcome-win' | 'outcome-loss' | 'outcome-burst' | 'xp-go';
@@ -181,11 +255,32 @@ const CELL_TICK_MAX_PER_S = 20;
 const UI_HOVER_MAX_PER_S = 12;
 /** `placeHeavy` within this of a placement (or of itself) is the same thud. */
 const PLACE_HEAVY_DEDUP_S = 0.12;
-/** A piece with at least this many cells is heavy: `place-heavy` layers under `place`. */
-const HEAVY_CELLS = 5;
 const END_SLOW_DEDUP_S = 1.0;
-/** A contact cue this soon after the event's placement is the same landing. */
+/** A playfield cue this soon after the event played the same name is the same card. */
 const CONTACT_DEDUP_S = 0.4;
+/** `rejected()` and `cue('rejected')` within this are one snap-back. */
+const REJECT_DEDUP_S = 0.15;
+
+// ---- card pitch
+/** Major scale, semitones: rank 1..13 (A..K) of a foundation or cascade card. */
+const RANK_SEMIS = [0, 2, 4, 5, 7, 9, 11, 12, 14, 16, 17, 19, 21] as const;
+/** Major pentatonic, semitones: the foundation tone by streak (1X .. 8X+). */
+const STREAK_SEMIS = [0, 2, 4, 7, 9, 12, 14, 16] as const;
+const semisToRate = (s: number): number => Math.pow(2, s / 12);
+
+// ---- the autocomplete cascade
+/** Spacing of the engine-driven run (event path, or one call starting it). */
+const CASCADE_STEP_S = 0.065;
+/** Ticks are booked this far ahead by a timer (the run never books 52 voices at once). */
+const CASCADE_LOOKAHEAD_S = 0.12;
+/** Two `cue('cascade')` calls within this: the playfield calls per card; the engine run stands down. */
+const CASCADE_PER_CARD_S = 0.6;
+/** A single `cue('cascade')` with no events behind it runs this many steps. */
+const CASCADE_DEFAULT_RUN = 16;
+/** Cascade step `i` climbs one scale degree every this many cards (four suits a rank). */
+const CASCADE_CARDS_PER_STEP = 4;
+/** The tone under a cascade step, relative to its foundation level. */
+const CASCADE_TONE_GAIN = 0.8;
 
 const CLEAR_CUES = new Set([
   'clear-1',
@@ -312,10 +407,29 @@ export class AudioEngine {
   private lastCellTick = -Infinity;
   private lastHover = -Infinity;
   private lastPlaceHeavy = -Infinity;
-  /** The render engine's contact cue has been seen: it owns the placement sound. */
-  private contactPlace = false;
-  private lastEventPlace = -Infinity;
   private lastEndSlow = -Infinity;
+  private lastReject = -Infinity;
+
+  /** Card cue names the playfield has sent: their events stay silent from then on. */
+  private owned = new Set<CardCue>();
+  /** When the event path last played each card cue (for the hand-over dedup). */
+  private eventPlayed = new Map<CardCue, number>();
+  /** The streak after the last `scored` (pitches the foundation tone when no rank is given). */
+  private streakNow = 0;
+
+  private casc = {
+    /** Steps still to book. */
+    queue: 0,
+    /** Step index (pitch). */
+    index: 0,
+    /** When the next step is due (ctx time). */
+    nextAt: 0,
+    timer: null as ReturnType<typeof setTimeout> | null,
+    /** Last `cue('cascade')`. */
+    lastCall: -Infinity,
+    /** The playfield sends one call per card: it owns the timing. */
+    perCard: false,
+  };
 
   constructor(enabled: boolean, options: AudioEngineOptions = {}) {
     this.enabled = enabled;
@@ -418,6 +532,7 @@ export class AudioEngine {
   dispose(): void {
     this.withdraw();
     this.stopFollower();
+    this.cancelCascade();
     const ctx = this.ctx;
     if (!ctx) return;
     for (const v of this.voices) {
@@ -608,33 +723,24 @@ export class AudioEngine {
   }
 
   /**
-   * A cue by name — the bridge for the render engine's `onCue` (feel wave:
-   * `place` / `place-heavy` at the landing's CONTACT, `end-slow` at the
-   * slow-mo, `cell-tick` on a legal cell) and the shell's `sfx()` shim
-   * (`ui-press`, `toast-in`, `inbox-open`, `odometer-flip`, `rank-up`),
-   * plus the world events. Unknown names are ignored.
-   *
-   * `place` / `place-heavy` from the contact hook take over from the
-   * `piecePlaced` event once they are seen: the event plays the placement
-   * until the first contact cue arrives (deduped against it), then contact
-   * owns the timing — one thud per landing either way.
+   * A cue by name — the bridge for the render engine's `onCue`: the CARD
+   * CUES above (`arg`: a foundation / cascade card's rank 1..13, optional),
+   * `end-slow` at the slow-mo, `cell-tick` on a legal target, Blockari's
+   * `place` / `place-heavy`; the shell's `sfx()` shim (`ui-press`,
+   * `toast-in`, `inbox-open`, `odometer-flip`, `rank-up`); and the world
+   * events. Unknown names are ignored.
    */
-  cue(name: string): void {
+  cue(name: string, arg?: number): void {
+    if (name === 'reject') name = 'rejected';
+    if (isCardCueName(name)) {
+      this.cardFromPlayfield(name, arg);
+      return;
+    }
     switch (name) {
       case 'place':
-      case 'place-heavy': {
-        const ctx = this.ctx;
-        if (!ctx) return;
-        const heavy = name === 'place-heavy';
-        if (!this.contactPlace && ctx.currentTime - this.lastEventPlace < CONTACT_DEDUP_S) {
-          this.contactPlace = true; // from now on the contact owns the placement
-          if (heavy) this.placeHeavy(); // the event did not know the mass
-          return;
-        }
-        this.contactPlace = true;
-        this.place(heavy);
+      case 'place-heavy':
+        this.place(name === 'place-heavy');
         return;
-      }
       case 'end-slow':
         this.endSlow();
         return;
@@ -669,43 +775,65 @@ export class AudioEngine {
     }
   }
 
-  handle = (e: GameEvent): void => {
+  handle = (e: AudioEvent): void => {
     switch (e.type) {
-      case 'piecePlaced':
-        if (!this.contactPlace) {
-          this.place(e.cells.length >= HEAVY_CELLS);
-          this.lastEventPlace = this.ctx?.currentTime ?? 0;
-        }
-        if (!this.wantMusic) this.startMusic(); // a resumed game has no countdown
+      case 'dealt':
+        this.cardFromEvent('shuffle');
         break;
-      case 'linesCleared':
-        this.clear(e.rows.length + e.cols.length, e.colorLines > 0);
-        haptic('clear');
+      case 'moved':
+        if (!this.wantMusic) this.startMusic(); // a resumed game has no countdown
+        if (e.auto) {
+          if (!this.casc.perCard) this.enqueueCascade(1); // per card: the playfield plays each step
+        } else if (isFoundationPile(e.from)) {
+          this.cardFromEvent('return');
+        } else if (!isFoundationPile(e.to)) {
+          this.cardFromEvent('card-place');
+        } // to a foundation: `scored` follows with the streak that pitches it
+        break;
+      case 'flipped':
+        this.cardFromEvent('card-flip');
+        break;
+      case 'drew':
+        if (!this.wantMusic) this.startMusic();
+        this.cardFromEvent('card-draw');
+        break;
+      case 'recycled':
+        if (!this.wantMusic) this.startMusic();
+        this.cardFromEvent('recycle');
+        break;
+      case 'undone':
+        this.cardFromEvent('undo');
         break;
       case 'scored':
+        this.streakNow = e.streak;
+        if (e.kind === 'foundation') this.cardFromEvent('foundation');
+        if (e.kind === 'auto') break; // the cascade: no stinger per card, the streak is frozen
         if (e.streak >= 2) {
           this.streak(e.streak);
           this.setStreak(e.streak);
           if (e.streak >= RIDE_FULL_AT) haptic('big');
-        } else if (e.lines === 0) {
+        } else {
           this.setStreak(1);
         }
         break;
       case 'streakBroken':
+        this.streakNow = 0;
         this.setStreak(1);
         break;
-      case 'handDealt':
-        this.deal();
-        break;
-      case 'ended':
-        this.end(e.reason === 'stuck');
-        this.endSlow();
+      case 'ended': {
+        // A clear ends the instant the autocomplete is applied: the result lands after the run.
+        const after = this.cascadeRemaining();
+        this.end(e.reason === 'forfeit', after);
+        if (after > 0) setTimeout(() => this.endSlow(), after * 1000);
+        else this.endSlow();
+        this.streakNow = 0;
         this.setStreak(1);
         this.stopMusic();
         this.fadeAmbience(AMB_END_FADE_S);
         this.world = null;
         this.reopen(CLOCK_REOPEN_TAU);
         break;
+      }
       case 'levelUp':
         this.levelUp();
         break;
@@ -713,6 +841,156 @@ export class AudioEngine {
         break;
     }
   };
+
+  // ---------------------------------------------------------------------------
+  // Card cues
+
+  /** A card cue from the sim's events: plays unless the playfield has taken the name. */
+  private cardFromEvent(name: CardCue): void {
+    const ctx = this.ctx;
+    if (!ctx || this.owned.has(name)) return;
+    this.eventPlayed.set(name, ctx.currentTime);
+    this.playCard(name);
+  }
+
+  /** A card cue from the playfield: it owns the name from now on. */
+  private cardFromPlayfield(name: CardCue, arg?: number): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    if (name === 'cascade') {
+      this.owned.add(name);
+      this.cascadeCue(arg);
+      return;
+    }
+    if (name === 'rejected') {
+      this.rejected();
+      return;
+    }
+    if (!this.owned.has(name)) {
+      this.owned.add(name);
+      const at = this.eventPlayed.get(name);
+      if (at !== undefined && ctx.currentTime - at < CONTACT_DEDUP_S) return; // already heard
+    }
+    this.playCard(name, arg);
+  }
+
+  /** Play a card cue now (or after `delay`): the file, else the same DSP rendered live; plus its haptic. */
+  private playCard(name: CardCue, arg?: number, delay = 0): void {
+    const file = CARD_CUE_FILE[name];
+    this.playCardFile(file, { delay });
+    if (name === 'foundation') {
+      const semis =
+        arg !== undefined && arg >= 1
+          ? RANK_SEMIS[Math.min(12, Math.round(arg) - 1)]
+          : STREAK_SEMIS[Math.min(STREAK_SEMIS.length - 1, Math.max(0, this.streakNow - 1))];
+      this.playCardFile('foundation-tone', {
+        delay: delay + 0.004,
+        rate: semisToRate(semis ?? 0),
+        jitter: false,
+      });
+    }
+    const h = CARD_HAPTIC[name];
+    if (h) haptic(h);
+  }
+
+  private playCardFile(
+    id: CardCueId,
+    o: { delay?: number; rate?: number; gain?: number; jitter?: boolean } = {},
+  ): void {
+    if (!this.play(id, o)) this.synth?.card(id, o);
+  }
+
+  /**
+   * `cue('cascade')`, designed for both ways a playfield may drive it:
+   *
+   *   - PER CARD: two calls within CASCADE_PER_CARD_S and the playfield owns
+   *     the timing — each call is one step (`arg` a rank pitches it; else the
+   *     step count does), and any engine run stands down.
+   *   - ONE CALL: a single call starts a run — the one the `moved{auto}`
+   *     events already booked (as many steps as cards), or, with no events
+   *     behind it, CASCADE_DEFAULT_RUN steps. If a second call follows after
+   *     all, the rest of the run is cancelled and it is per card from there.
+   */
+  private cascadeCue(rank?: number): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const c = this.casc;
+    const now = ctx.currentTime;
+    const since = now - c.lastCall;
+    c.lastCall = now;
+    if (since < CASCADE_PER_CARD_S || c.perCard) {
+      if (!c.perCard) {
+        c.perCard = true;
+        this.cancelCascade();
+      }
+      if (since > 1) c.index = 0;
+      this.cascadeStep(0, rank);
+      return;
+    }
+    if (c.queue > 0 || c.nextAt > now) return; // the event-driven run is already playing it
+    c.index = 0;
+    this.enqueueCascade(CASCADE_DEFAULT_RUN);
+  }
+
+  private enqueueCascade(n: number): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const c = this.casc;
+    if (c.queue === 0 && c.nextAt < ctx.currentTime - 0.5) c.index = 0; // a new run
+    c.queue += n;
+    this.pumpCascade();
+  }
+
+  /** Book every step due within the look-ahead; come back for the rest. */
+  private pumpCascade(): void {
+    const ctx = this.ctx;
+    const c = this.casc;
+    if (c.timer) clearTimeout(c.timer);
+    c.timer = null;
+    if (!ctx) return;
+    const now = ctx.currentTime;
+    while (c.queue > 0 && c.nextAt < now + CASCADE_LOOKAHEAD_S) {
+      const at = Math.max(c.nextAt, now);
+      this.cascadeStep(at - now);
+      c.nextAt = at + CASCADE_STEP_S;
+      c.queue--;
+    }
+    if (c.queue > 0) c.timer = setTimeout(() => this.pumpCascade(), 40);
+  }
+
+  private cancelCascade(): void {
+    const c = this.casc;
+    c.queue = 0;
+    if (c.timer) clearTimeout(c.timer);
+    c.timer = null;
+  }
+
+  /** Seconds until the booked run is done (0 when none). */
+  private cascadeRemaining(): number {
+    const ctx = this.ctx;
+    if (!ctx) return 0;
+    const c = this.casc;
+    const left = c.queue * CASCADE_STEP_S + Math.max(0, c.nextAt - ctx.currentTime);
+    return left > 0 ? left + 0.1 : 0;
+  }
+
+  /** One cascade step: the light snap and the tone a degree up per rank. */
+  private cascadeStep(delay: number, rank?: number): void {
+    const c = this.casc;
+    const i = c.index++;
+    const degree =
+      rank !== undefined && rank >= 1
+        ? Math.min(12, Math.round(rank) - 1)
+        : Math.min(12, Math.floor(i / CASCADE_CARDS_PER_STEP));
+    this.playCardFile('cascade', { delay });
+    this.playCardFile('foundation-tone', {
+      delay: delay + 0.003,
+      rate: semisToRate(RANK_SEMIS[degree] ?? 0),
+      gain: CASCADE_TONE_GAIN,
+      jitter: false,
+    });
+    haptic('tick');
+  }
 
   /**
    * Beats of the results cinematic (the playfield's ResultsScene calls these):
@@ -768,32 +1046,26 @@ export class AudioEngine {
       this.synth?.countdown(value);
   }
 
+  /** An illegal drop snapping back: the card's muted double knock (Blockari's buzz only if that file is missing), and a thump. */
   rejected(): void {
-    if (!this.ctx) return;
-    if (!this.play('reject')) this.synth?.rejected();
+    const ctx = this.ctx;
+    if (!ctx) return;
+    if (ctx.currentTime - this.lastReject < REJECT_DEDUP_S) return; // rejected() and cue('rejected') for one drop
+    this.lastReject = ctx.currentTime;
+    haptic('thump');
+    if (this.play('card-reject')) return;
+    if (this.play('reject')) return;
+    this.synth?.card('card-reject');
   }
 
   // ---------------------------------------------------------------------------
   // Cues
 
+  /** Blockari's placement thud, for a playfield that still sends `place` / `place-heavy`. */
   private place(heavy: boolean): void {
     if (!this.play('place')) this.synth?.place();
     haptic('thump');
     if (heavy) this.placeHeavy();
-  }
-
-  private deal(): void {
-    if (!this.play('deal', { gain: 0.9 })) this.synth?.deal();
-  }
-
-  private clear(lines: number, sameColor: boolean): void {
-    const id = lines >= 3 ? 'clear-3plus' : lines === 2 ? 'clear-2' : 'clear-1';
-    if (!this.play(id, { depthDb: DUCK_CLEAR_DB })) {
-      this.synth?.clear(lines, sameColor);
-      return;
-    }
-    if (lines >= 2) this.play('multiline', { delay: 0.05, depthDb: DUCK_CLEAR_DB });
-    if (sameColor) this.play('results-shards', { delay: 0.2, gain: 0.6 });
   }
 
   private streak(n: number): void {
@@ -826,9 +1098,12 @@ export class AudioEngine {
     }
   }
 
-  private end(stuck: boolean): void {
-    if (!this.play(stuck ? 'end-stuck' : 'end-timeout', { depthDb: DUCK_CLEAR_DB }))
-      this.synth?.end(stuck);
+  /** The resolving chord for a clear or the clock; the sinking one for a forfeit. */
+  private end(stuck: boolean, delay = 0): void {
+    if (!this.play(stuck ? 'end-stuck' : 'end-timeout', { depthDb: DUCK_CLEAR_DB, delay })) {
+      if (delay > 0) setTimeout(() => this.synth?.end(stuck), delay * 1000);
+      else this.synth?.end(stuck);
+    }
   }
 
   // ---------------------------------------------------------------------------

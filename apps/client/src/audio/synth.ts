@@ -2,14 +2,46 @@
  * The alpha's synthesised placeholder cues, kept as the fallback the engine
  * uses when the generated manifest cannot be fetched or decoded. WebAudio
  * oscillators only: nothing fetched, nothing generated.
+ *
+ * The card cues are the exception: their fallback is the real thing. The
+ * committed files are offline renders of `cardfx.ts`, so `card()` renders
+ * the same DSP into an AudioBuffer (once per cue, a few ms) and plays it at
+ * the manifest gain the files would have had.
  */
+import { CARD_CUE_GAIN, type CardCueId, renderCardCue } from './cardfx.js';
 import type { ResultsBeat } from './engine.js';
 
 export class SynthCues {
+  private readonly cards = new Map<CardCueId, AudioBuffer>();
+
   constructor(
     private readonly ctx: AudioContext,
     private readonly out: AudioNode,
   ) {}
+
+  /** A card cue rendered on the spot from cardfx.ts (cached): `rate` pitches it, `gain` scales the manifest gain. */
+  card(id: CardCueId, o: { rate?: number; gain?: number; delay?: number } = {}): void {
+    const c = this.ctx;
+    let buf = this.cards.get(id);
+    if (!buf) {
+      const x = renderCardCue(id, c.sampleRate);
+      buf = c.createBuffer(1, x.length, c.sampleRate);
+      buf.getChannelData(0).set(x);
+      this.cards.set(id, buf);
+    }
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    src.playbackRate.value = o.rate ?? 1;
+    const g = c.createGain();
+    g.gain.value = CARD_CUE_GAIN[id] * (o.gain ?? 1);
+    src.connect(g);
+    g.connect(this.out);
+    src.onended = () => {
+      src.disconnect();
+      g.disconnect();
+    };
+    src.start(c.currentTime + (o.delay ?? 0));
+  }
 
   place(): void {
     const t = this.ctx.currentTime;

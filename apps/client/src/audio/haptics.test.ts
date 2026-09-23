@@ -68,6 +68,22 @@ describe('haptics', () => {
     }
   });
 
+  it('rate-limits the foundation tap to 12 a second, apart from ticks', async () => {
+    vi.useFakeTimers({ toFake: ['performance'] });
+    try {
+      const { haptic } = await import('./haptics.js');
+      haptic('tap');
+      haptic('tick'); // its own limiter: plays
+      vi.advanceTimersByTime(60);
+      haptic('tap'); // 60 ms: dropped (limit is ~83 ms)
+      vi.advanceTimersByTime(30);
+      haptic('tap'); // 90 ms: plays
+      expect(calls).toEqual([14, 8, 14]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('is not supported on a desktop that merely has vibrate()', async () => {
     vi.stubGlobal('navigator', { vibrate: () => true, maxTouchPoints: 0 });
     vi.stubGlobal('matchMedia', () => ({ matches: false }));

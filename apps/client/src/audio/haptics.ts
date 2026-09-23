@@ -6,32 +6,38 @@
  *
  * The map (docs/audio.md, Haptics):
  *
- *   tick    8 ms            hover over a legal cell during a drag (max 20/s)
- *   thump   20 ms           a piece lands
- *   clear   15 / 40 / 15    a line clear (double pulse: 15 on, 40 off, 15 on)
+ *   tick    8 ms            a card settles on a tableau pile, a return, each
+ *                           autocomplete step; hover over a legal target (max 20/s)
+ *   tap     14 ms           a card lands on a foundation (max 12/s)
+ *   thump   20 ms           an illegal drop snaps back
+ *   clear   15 / 40 / 15    (Blockari's line clear; unused by the card game)
  *   big     120 ms          a 4X streak
  *   toast   30 ms           a toast slides in
  *
- * The audio engine fires tick / thump / clear / big from the same events that
+ * The audio engine fires tick / tap / thump / big from the same events that
  * play the cues, so the render and shell agents only call `haptic('toast')`
  * themselves (the shell, when a toast lands) — or `haptic(kind)` anywhere a
  * new feel moment needs one.
  */
 import { useSettings } from '../state/settings.js';
 
-export type HapticKind = 'tick' | 'thump' | 'clear' | 'big' | 'toast';
+export type HapticKind = 'tick' | 'tap' | 'thump' | 'clear' | 'big' | 'toast';
 
 export const HAPTIC_PATTERNS: Readonly<Record<HapticKind, number | readonly number[]>> = {
   tick: 8,
+  tap: 14,
   thump: 20,
   clear: [15, 40, 15],
   big: 120,
   toast: 30,
 };
 
-/** Ticks are rate-limited to this many per second, like the cell-tick cue. */
-const TICK_MAX_PER_S = 20;
-let lastTickAt = -Infinity;
+/**
+ * The light kinds are rate-limited (per second), like the cell-tick cue: a
+ * fast run of card plays or the autocomplete must not turn into a buzz.
+ */
+const MAX_PER_S: Partial<Record<HapticKind, number>> = { tick: 20, tap: 12 };
+const lastAt = new Map<HapticKind, number>();
 
 /**
  * A platform that can buzz AND is held in the hand: `navigator.vibrate`
@@ -54,10 +60,11 @@ export function haptic(kind: HapticKind): void {
   if (!hapticsSupported()) return;
   if (!useSettings.getState().haptics) return;
   if (typeof document !== 'undefined' && document.hidden) return;
-  if (kind === 'tick') {
+  const max = MAX_PER_S[kind];
+  if (max !== undefined) {
     const now = performance.now();
-    if (now - lastTickAt < 1000 / TICK_MAX_PER_S) return;
-    lastTickAt = now;
+    if (now - (lastAt.get(kind) ?? -Infinity) < 1000 / max) return;
+    lastAt.set(kind, now);
   }
   try {
     const p = HAPTIC_PATTERNS[kind];
