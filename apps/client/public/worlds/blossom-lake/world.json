@@ -1,0 +1,109 @@
+{
+  "id": "blossom-lake",
+  "name": "Blossom Lake",
+  "focal": {
+    "x": 0.5,
+    "y": 0.45,
+    "portrait": {
+      "x": 0,
+      "y": 0.75,
+      "zoom": 1.4
+    }
+  },
+  "portrait": {
+    "far": {
+      "x": 0,
+      "y": 0.75,
+      "zoom": 1.4
+    },
+    "near": {
+      "x": 0,
+      "y": 1,
+      "zoom": 1
+    }
+  },
+  "sun": {
+    "riseX": 0.9,
+    "setX": 0.64,
+    "colour": "#ffdcae"
+  },
+  "sky": {
+    "dawn": ["#2a1f4e", "#f5a07a"],
+    "noon": ["#2f6fd6", "#bfe3ff"],
+    "dusk": ["#2c2a74", "#ff9560"],
+    "night": ["#070a1c", "#1a2350"]
+  },
+  "particles": {
+    "kind": "petal",
+    "rate": 5,
+    "tint": "#ffa8d0"
+  },
+  "events": {
+    "streak3": "lanterns",
+    "streak4": "sunburst",
+    "multiline": "gust"
+  },
+  "ambient": {
+    "cool": "#1a2450",
+    "warm": "#ffcfa0"
+  },
+  "lanterns": [
+    {
+      "x": 0.16,
+      "y": 0.665
+    }
+  ],
+  "nearSoften": 0.698,
+  "frame": {
+    "w": 2560,
+    "h": 1440
+  },
+  "portraitFrame": {
+    "w": 1440,
+    "h": 2560
+  },
+  "sizes": [3840, 2560, 1280],
+  "overscan": 12,
+  "layers": {
+    "sky": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "far": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "mid": {
+      "rect": [0, 0.175, 1, 0.43333333333333335],
+      "alpha": true
+    },
+    "near": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "flat": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "midLit": {
+      "rect": [0, 0.17222222222222222, 1, 0.4388888888888889],
+      "alpha": true
+    },
+    "nearPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "midPortrait": {
+      "rect": [0.001388888888888889, 0, 0.9986111111111111, 0.5078125],
+      "alpha": true
+    },
+    "farPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "skyPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    }
+  }
+}

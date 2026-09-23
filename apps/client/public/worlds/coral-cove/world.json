@@ -1,0 +1,99 @@
+{
+  "id": "coral-cove",
+  "name": "Coral Cove",
+  "focal": {
+    "x": 0.5,
+    "y": 0.48,
+    "portrait": {
+      "x": 1,
+      "y": 0,
+      "zoom": 1.4
+    }
+  },
+  "portrait": {
+    "far": {
+      "x": 1,
+      "y": 0,
+      "zoom": 1.4
+    },
+    "near": {
+      "x": 0,
+      "y": 1,
+      "zoom": 1
+    }
+  },
+  "sun": {
+    "riseX": 0.1,
+    "setX": 0.36,
+    "colour": "#ffd9a8"
+  },
+  "sky": {
+    "dawn": ["#2c2454", "#ffa77c"],
+    "noon": ["#2b6ee0", "#bfe6ff"],
+    "dusk": ["#2a2a78", "#ff8d5c"],
+    "night": ["#070a1c", "#1a2350"]
+  },
+  "particles": {
+    "kind": "firefly",
+    "rate": 2,
+    "tint": "#ffffff"
+  },
+  "events": {
+    "streak4": "sunburst",
+    "multiline": "gust"
+  },
+  "ambient": {
+    "cool": "#1a2a58",
+    "warm": "#ffd3a6"
+  },
+  "lanterns": [],
+  "nearSoften": 0.553,
+  "frame": {
+    "w": 2560,
+    "h": 1440
+  },
+  "portraitFrame": {
+    "w": 1440,
+    "h": 2560
+  },
+  "sizes": [3840, 2560, 1280],
+  "overscan": 12,
+  "layers": {
+    "sky": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "far": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "mid": {
+      "rect": [0, 0.15833333333333333, 0.99296875, 0.5333333333333333],
+      "alpha": true
+    },
+    "near": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "flat": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "nearPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "midPortrait": {
+      "rect": [0.10069444444444445, 0.228125, 0.8569444444444444, 0.7328125],
+      "alpha": true
+    },
+    "farPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "skyPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    }
+  }
+}

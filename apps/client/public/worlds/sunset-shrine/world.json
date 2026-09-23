@@ -1,0 +1,130 @@
+{
+  "id": "sunset-shrine",
+  "name": "Sunset Shrine",
+  "light": "fixed",
+  "focal": {
+    "x": 0.5,
+    "y": 0.5,
+    "portrait": {
+      "x": 1,
+      "y": 0.15,
+      "zoom": 1.4
+    }
+  },
+  "portrait": {
+    "far": {
+      "x": 1,
+      "y": 0.15,
+      "zoom": 1.4
+    },
+    "near": {
+      "x": 1,
+      "y": 1,
+      "zoom": 1
+    }
+  },
+  "sun": {
+    "riseX": 0.69,
+    "setX": 0.69,
+    "fixed": {
+      "x": 0.688,
+      "y": 0.4
+    },
+    "colour": "#ffd08a"
+  },
+  "sky": {
+    "dawn": ["#5a2a7a", "#ff9a5a"],
+    "noon": ["#5a2a7a", "#ff9a5a"],
+    "dusk": ["#5a2a7a", "#ff9a5a"],
+    "night": ["#1a0f33", "#4a2a5a"]
+  },
+  "particles": {
+    "kind": "petal",
+    "rate": 6,
+    "tint": "#ffb0d8"
+  },
+  "events": {
+    "streak3": "lanterns",
+    "streak4": "sunburst",
+    "multiline": "gust"
+  },
+  "ambient": {
+    "cool": "#4a2a5a",
+    "warm": "#ffc08a"
+  },
+  "lanterns": [
+    {
+      "x": 0.03,
+      "y": 0.66
+    },
+    {
+      "x": 0.305,
+      "y": 0.665
+    },
+    {
+      "x": 0.86,
+      "y": 0.69
+    },
+    {
+      "x": 0.87,
+      "y": 0.29
+    },
+    {
+      "x": 0.93,
+      "y": 0.45
+    }
+  ],
+  "nearSoften": 0.793,
+  "frame": {
+    "w": 2560,
+    "h": 1440
+  },
+  "portraitFrame": {
+    "w": 1440,
+    "h": 2560
+  },
+  "sizes": [3840, 2560, 1280],
+  "overscan": 12,
+  "layers": {
+    "sky": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "far": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "mid": {
+      "rect": [0, 0.035416666666666666, 1, 0.6305555555555555],
+      "alpha": true
+    },
+    "near": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "flat": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "midLit": {
+      "rect": [0, 0.03194444444444444, 1, 0.6361111111111111],
+      "alpha": true
+    },
+    "nearPortrait": {
+      "rect": [0, 0.5796875, 1, 0.4203125],
+      "alpha": true
+    },
+    "midPortrait": {
+      "rect": [0, 0.01953125, 1, 0.77578125],
+      "alpha": true
+    },
+    "farPortrait": {
+      "rect": [0, 0.01875, 1, 0.98125],
+      "alpha": true
+    },
+    "skyPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    }
+  }
+}

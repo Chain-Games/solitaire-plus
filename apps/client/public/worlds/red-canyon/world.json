@@ -1,0 +1,100 @@
+{
+  "id": "red-canyon",
+  "name": "Red Canyon",
+  "focal": {
+    "x": 0.5,
+    "y": 0.5,
+    "portrait": {
+      "x": 0,
+      "y": 0.3,
+      "zoom": 1.4
+    }
+  },
+  "portrait": {
+    "far": {
+      "x": 0,
+      "y": 0.3,
+      "zoom": 1.4
+    },
+    "near": {
+      "x": 0.15,
+      "y": 1,
+      "zoom": 1.2
+    }
+  },
+  "sun": {
+    "riseX": 0.9,
+    "setX": 0.64,
+    "colour": "#ffd9a0"
+  },
+  "sky": {
+    "dawn": ["#3a2450", "#ffa070"],
+    "noon": ["#2f6fd6", "#c9e2ff"],
+    "dusk": ["#3a2860", "#ff8a50"],
+    "night": ["#0a0a1c", "#2a1a30"]
+  },
+  "particles": {
+    "kind": "ember",
+    "rate": 2,
+    "tint": "#ffd9a0"
+  },
+  "events": {
+    "streak4": "sunburst",
+    "multiline": "gust"
+  },
+  "ambient": {
+    "cool": "#2a1a3a",
+    "warm": "#ffc890",
+    "desaturate": 0.08
+  },
+  "lanterns": [],
+  "nearSoften": 0.613,
+  "frame": {
+    "w": 2560,
+    "h": 1440
+  },
+  "portraitFrame": {
+    "w": 1440,
+    "h": 2560
+  },
+  "sizes": [3840, 2560, 1280],
+  "overscan": 12,
+  "layers": {
+    "sky": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "far": {
+      "rect": [0, 0.016666666666666666, 1, 0.9833333333333333],
+      "alpha": true
+    },
+    "mid": {
+      "rect": [0, 0.016666666666666666, 1, 0.8],
+      "alpha": true
+    },
+    "near": {
+      "rect": [0, 0.33819444444444446, 1, 0.6618055555555555],
+      "alpha": true
+    },
+    "flat": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "nearPortrait": {
+      "rect": [0, 0.30625, 1, 0.69375],
+      "alpha": true
+    },
+    "midPortrait": {
+      "rect": [0, 0, 1, 0.565625],
+      "alpha": true
+    },
+    "farPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "skyPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    }
+  }
+}

@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
+    />
+    <meta name="theme-color" content="#0b0d1a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Blockari</title>
+    <meta
+      name="description"
+      content="Head-to-head block puzzle. Same seed, same pieces, best score wins."
+    />
+    <!-- Social cards. Scrapers need absolute URLs, and the origin is only known
+         at deploy time (PUBLIC_URL), so the server substitutes __PUBLIC_URL__
+         when it serves this file; the Vite dev server does the same. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Blockari" />
+    <meta property="og:url" content="__PUBLIC_URL__/" />
+    <meta property="og:title" content="Blockari" />
+    <meta
+      property="og:description"
+      content="Same seed. Same pieces. Three minutes. Best score wins."
+    />
+    <meta property="og:image" content="__PUBLIC_URL__/brand/og-card.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Blockari — head-to-head block puzzle" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Blockari" />
+    <meta
+      name="twitter:description"
+      content="Same seed. Same pieces. Three minutes. Best score wins."
+    />
+    <meta name="twitter:image" content="__PUBLIC_URL__/brand/og-card.jpg" />
+    <meta name="twitter:image:alt" content="Blockari — head-to-head block puzzle" />
+    <link rel="canonical" href="__PUBLIC_URL__/" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/brand/favicon-64.png" type="image/png" sizes="64x64" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/brand/icon-192.png" sizes="192x192" />
+    <link rel="apple-touch-icon" href="/brand/icon-512.png" sizes="512x512" />
+    <link
+      rel="preload"
+      as="image"
+      href="/brand/logo-640.png"
+      imagesrcset="/brand/logo-320.png 320w, /brand/logo-640.png 640w, /brand/logo-1024.png 1024w, /brand/logo.png 1179w"
+      imagesizes="560px"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- The display and body faces (latin) are preloaded so the first paint never sets in the
+         fallback sans (its wider metrics grew the top bar's pills). The URLs are the ones the
+         stylesheet below resolves to for a modern browser; if Google rotates a version the
+         preload is merely unused and the stylesheet still loads the face. -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pa8FvOreec.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="https://fonts.gstatic.com/s/rajdhani/v17/LDI2apCSOBg7S-QT7pbYF_Oreec.woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="https://fonts.gstatic.com/s/spacegrotesk/v22/V8mDoQDjQSkFtoMM3T6r8E7mPbF4Cw.woff2"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

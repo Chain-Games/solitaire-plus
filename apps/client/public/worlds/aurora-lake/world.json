@@ -1,0 +1,100 @@
+{
+  "id": "aurora-lake",
+  "name": "Aurora Lake",
+  "light": "fixed",
+  "focal": {
+    "x": 0.5,
+    "y": 0.45,
+    "portrait": {
+      "x": 0.5,
+      "y": 0,
+      "zoom": 1.2
+    }
+  },
+  "portrait": {
+    "far": {
+      "x": 0.5,
+      "y": 0,
+      "zoom": 1.2
+    },
+    "near": {
+      "x": 0,
+      "y": 1,
+      "zoom": 1.2
+    }
+  },
+  "sun": {
+    "riseX": 0.5,
+    "setX": 0.5,
+    "fixed": {
+      "x": 0.5,
+      "y": 0.22
+    },
+    "colour": "#7dfbe0"
+  },
+  "sky": {
+    "dawn": ["#0a0f3a", "#2a3a8a"],
+    "noon": ["#0a0f3a", "#2a3a8a"],
+    "dusk": ["#0a0f3a", "#2a3a8a"],
+    "night": ["#05071c", "#1a2350"]
+  },
+  "particles": {
+    "kind": "snow",
+    "rate": 8,
+    "tint": "#e8f4ff"
+  },
+  "events": {
+    "streak4": "sunburst",
+    "multiline": "gust"
+  },
+  "ambient": {
+    "cool": "#101a4a",
+    "warm": "#4de0d0"
+  },
+  "lanterns": [],
+  "nearSoften": 0.851,
+  "frame": {
+    "w": 2560,
+    "h": 1440
+  },
+  "portraitFrame": {
+    "w": 1440,
+    "h": 2560
+  },
+  "sizes": [3840, 2560, 1280],
+  "overscan": 12,
+  "layers": {
+    "sky": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "far": {
+      "rect": [0, 0.12569444444444444, 1, 0.8743055555555556],
+      "alpha": true
+    },
+    "mid": {
+      "rect": [0, 0.12986111111111112, 1, 0.5444444444444444],
+      "alpha": true
+    },
+    "near": {
+      "rect": [0, 0.14444444444444443, 1, 0.8555555555555555],
+      "alpha": true
+    },
+    "flat": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "nearPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "farPortrait": {
+      "rect": [0, 0.4390625, 1, 0.5609375],
+      "alpha": true
+    },
+    "skyPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    }
+  }
+}

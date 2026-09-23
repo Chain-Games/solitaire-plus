@@ -1,0 +1,99 @@
+{
+  "id": "alpine-falls",
+  "name": "Alpine Falls",
+  "focal": {
+    "x": 0.5,
+    "y": 0.45,
+    "portrait": {
+      "x": 0,
+      "y": 0.75,
+      "zoom": 1.4
+    }
+  },
+  "portrait": {
+    "far": {
+      "x": 0,
+      "y": 0.75,
+      "zoom": 1.4
+    },
+    "near": {
+      "x": 0,
+      "y": 1,
+      "zoom": 1
+    }
+  },
+  "sun": {
+    "riseX": 0.9,
+    "setX": 0.64,
+    "colour": "#ffe2b0"
+  },
+  "sky": {
+    "dawn": ["#2b2450", "#f7a37a"],
+    "noon": ["#2f6fd6", "#bfe3ff"],
+    "dusk": ["#2a2a70", "#ff9a62"],
+    "night": ["#070a1c", "#1a2350"]
+  },
+  "particles": {
+    "kind": "firefly",
+    "rate": 3,
+    "tint": "#fff3b0"
+  },
+  "events": {
+    "streak4": "sunburst",
+    "multiline": "gust"
+  },
+  "ambient": {
+    "cool": "#1a2a50",
+    "warm": "#ffd0a0"
+  },
+  "lanterns": [],
+  "nearSoften": 0.82,
+  "frame": {
+    "w": 2560,
+    "h": 1440
+  },
+  "portraitFrame": {
+    "w": 1440,
+    "h": 2560
+  },
+  "sizes": [3840, 2560, 1280],
+  "overscan": 12,
+  "layers": {
+    "sky": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "far": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "mid": {
+      "rect": [0.0375, 0.19652777777777777, 0.21640625, 0.4041666666666667],
+      "alpha": true
+    },
+    "near": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "flat": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "nearPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "midPortrait": {
+      "rect": [0.17708333333333334, 0, 0.8229166666666666, 0.53515625],
+      "alpha": true
+    },
+    "farPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "skyPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    }
+  }
+}

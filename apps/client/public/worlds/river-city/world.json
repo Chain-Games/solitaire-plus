@@ -1,0 +1,138 @@
+{
+  "id": "river-city",
+  "name": "River City",
+  "light": "fixed",
+  "focal": {
+    "x": 0.5,
+    "y": 0.45,
+    "portrait": {
+      "x": 0.85,
+      "y": 0.75,
+      "zoom": 1.4
+    }
+  },
+  "portrait": {
+    "far": {
+      "x": 0.85,
+      "y": 0.75,
+      "zoom": 1.4
+    },
+    "near": {
+      "x": 0.5,
+      "y": 1,
+      "zoom": 1
+    }
+  },
+  "sun": {
+    "riseX": 0.72,
+    "setX": 0.72,
+    "fixed": {
+      "x": 0.716,
+      "y": 0.415
+    },
+    "colour": "#ffcf8a"
+  },
+  "sky": {
+    "dawn": ["#6a4a9a", "#ffa070"],
+    "noon": ["#6a4a9a", "#ffa070"],
+    "dusk": ["#6a4a9a", "#ffa070"],
+    "night": ["#1a1030", "#4a2a50"]
+  },
+  "particles": {
+    "kind": "petal",
+    "rate": 6,
+    "tint": "#ffb0d0"
+  },
+  "events": {
+    "streak3": "lanterns",
+    "streak4": "sunburst",
+    "multiline": "gust"
+  },
+  "ambient": {
+    "cool": "#4a2a5a",
+    "warm": "#ffc090"
+  },
+  "lanterns": [
+    {
+      "x": 0.464,
+      "y": 0.617
+    },
+    {
+      "x": 0.497,
+      "y": 0.617
+    },
+    {
+      "x": 0.531,
+      "y": 0.596
+    },
+    {
+      "x": 0.607,
+      "y": 0.585
+    },
+    {
+      "x": 0.69,
+      "y": 0.585
+    },
+    {
+      "x": 0.767,
+      "y": 0.59
+    },
+    {
+      "x": 0.831,
+      "y": 0.6
+    },
+    {
+      "x": 0.395,
+      "y": 0.562
+    }
+  ],
+  "nearSoften": 0.89,
+  "frame": {
+    "w": 2560,
+    "h": 1440
+  },
+  "portraitFrame": {
+    "w": 1440,
+    "h": 2560
+  },
+  "sizes": [3840, 2560, 1280],
+  "overscan": 12,
+  "layers": {
+    "sky": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "far": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "mid": {
+      "rect": [0, 0.33125, 1, 0.4777777777777778],
+      "alpha": true
+    },
+    "near": {
+      "rect": [0, 0, 0.69296875, 1],
+      "alpha": true
+    },
+    "flat": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "nearPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "midPortrait": {
+      "rect": [0, 0.52734375, 1, 0.2703125],
+      "alpha": true
+    },
+    "farPortrait": {
+      "rect": [0, 0.037109375, 1, 0.962890625],
+      "alpha": true
+    },
+    "skyPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    }
+  }
+}

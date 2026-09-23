@@ -1,0 +1,134 @@
+{
+  "id": "temple-bay",
+  "name": "Temple Bay",
+  "light": "fixed",
+  "focal": {
+    "x": 0.5,
+    "y": 0.45,
+    "portrait": {
+      "x": 0.15,
+      "y": 0.6,
+      "zoom": 1.4
+    }
+  },
+  "portrait": {
+    "far": {
+      "x": 0.15,
+      "y": 0.6,
+      "zoom": 1.4
+    },
+    "near": {
+      "x": 0.15,
+      "y": 1,
+      "zoom": 1
+    }
+  },
+  "sun": {
+    "riseX": 0.86,
+    "setX": 0.86,
+    "fixed": {
+      "x": 0.862,
+      "y": 0.34
+    },
+    "colour": "#ffd08a"
+  },
+  "sky": {
+    "dawn": ["#3a5aa8", "#ffb070"],
+    "noon": ["#3a5aa8", "#ffb070"],
+    "dusk": ["#3a5aa8", "#ffb070"],
+    "night": ["#0a0f2a", "#2a2a5a"]
+  },
+  "particles": {
+    "kind": "firefly",
+    "rate": 4,
+    "tint": "#ffe0a0"
+  },
+  "events": {
+    "streak3": "lanterns",
+    "streak4": "sunburst",
+    "multiline": "gust"
+  },
+  "ambient": {
+    "cool": "#2a3a6a",
+    "warm": "#ffc890"
+  },
+  "lanterns": [
+    {
+      "x": 0.097,
+      "y": 0.157
+    },
+    {
+      "x": 0.163,
+      "y": 0.126
+    },
+    {
+      "x": 0.0525,
+      "y": 0.282
+    },
+    {
+      "x": 0.043,
+      "y": 0.75
+    },
+    {
+      "x": 0.324,
+      "y": 0.743
+    },
+    {
+      "x": 0.365,
+      "y": 0.705
+    },
+    {
+      "x": 0.374,
+      "y": 0.6
+    }
+  ],
+  "nearSoften": 0.716,
+  "frame": {
+    "w": 2560,
+    "h": 1440
+  },
+  "portraitFrame": {
+    "w": 1440,
+    "h": 2560
+  },
+  "sizes": [3840, 2560, 1280],
+  "overscan": 12,
+  "layers": {
+    "sky": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "far": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "mid": {
+      "rect": [0.00078125, 0.07291666666666667, 0.99921875, 0.7777777777777778],
+      "alpha": true
+    },
+    "near": {
+      "rect": [0, 0, 0.703125, 1],
+      "alpha": true
+    },
+    "flat": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    },
+    "nearPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "midPortrait": {
+      "rect": [0, 0, 1, 0.8671875],
+      "alpha": true
+    },
+    "farPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": true
+    },
+    "skyPortrait": {
+      "rect": [0, 0, 1, 1],
+      "alpha": false
+    }
+  }
+}
