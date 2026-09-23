@@ -350,8 +350,36 @@ function paintFace(
   ctx.restore();
 }
 
+/**
+ * The back's colourway: the field's radial ramp (hi at the centre, lo at the
+ * edge), the lattice / rosette line colour and the edge shade. The gold rules
+ * and rosettes are shared by every theme (the logo is gold).
+ */
+export interface BackTheme {
+  readonly hi: number;
+  readonly mid: number;
+  readonly lo: number;
+  readonly line: number;
+  readonly shade: number;
+}
+
+export const BACK_THEMES = {
+  /** 21 Wild's own plum. */
+  plum: { hi: 0x3d1c6a, mid: 0x1b1030, lo: 0x120a20, line: 0xd873ff, shade: 0x0d0a18 },
+  /** Casino crimson: the logo's ribbon red; the strongest contrast on green felt. */
+  crimson: { hi: 0xc4172f, mid: 0x7d0c1c, lo: 0x46050f, line: 0xff8a8a, shade: 0x1a0206 },
+  /** Midnight navy: cool and quiet; the gold carries it. */
+  navy: { hi: 0x1f3f86, mid: 0x0f2150, lo: 0x07122e, line: 0x7fa8ff, shade: 0x020612 },
+  /** Royal emerald: the logo's green; tonal on the felt. */
+  emerald: { hi: 0x1d7a55, mid: 0x0b4531, lo: 0x05261b, line: 0x7dffc4, shade: 0x010c08 },
+} as const satisfies Record<string, BackTheme>;
+
+export type BackThemeId = keyof typeof BACK_THEMES;
+/** The theme the game bakes: royal navy (owner's pick, 09-23). */
+export const BACK_THEME: BackThemeId = 'navy';
+
 /** The back's logo: its width as a fraction of the card's. */
-const LOGO_W = 0.86;
+const LOGO_W = 0.62;
 
 interface LogoArt {
   readonly image: HTMLImageElement;
@@ -423,6 +451,7 @@ function paintBack(
   w: number,
   h: number,
   logo: LogoArt | null,
+  B: BackTheme = BACK_THEMES[BACK_THEME],
 ): void {
   const radius = CARD_RADIUS * w;
   ctx.save();
@@ -431,15 +460,15 @@ function paintBack(
   const cx = w * 0.5;
   const cy = h * 0.5;
   const field = ctx.createRadialGradient(cx, cy * 0.86, w * 0.05, cx, cy, h * 0.72);
-  field.addColorStop(0, css(mixHex(TOKENS.plum, TOKENS.violet, 0.22)));
-  field.addColorStop(0.55, css(TOKENS.felt));
-  field.addColorStop(1, css(TOKENS.feltDeep));
+  field.addColorStop(0, css(B.hi));
+  field.addColorStop(0.55, css(B.mid));
+  field.addColorStop(1, css(B.lo));
   ctx.fillStyle = field;
   ctx.fillRect(0, 0, w, h);
 
   ctx.save();
   ctx.lineWidth = Math.max(1, w * 0.0028);
-  ctx.strokeStyle = css(TOKENS.violetLight, 0.09);
+  ctx.strokeStyle = css(B.line, 0.09);
   const step = w / 15;
   ctx.beginPath();
   for (let x = -h; x < w + h; x += step) {
@@ -455,7 +484,7 @@ function paintBack(
   ctx.lineWidth = Math.max(1, w * 0.0032);
   ctx.strokeStyle = css(TOKENS.gold, 0.2);
   guilloche(ctx, cx, cy, w * 0.42, 7, 0.85, 1400);
-  ctx.strokeStyle = css(TOKENS.violetLight, 0.24);
+  ctx.strokeStyle = css(B.line, 0.24);
   guilloche(ctx, cx, cy, w * 0.34, 11, 0.7, 1600);
   ctx.strokeStyle = css(TOKENS.gold, 0.14);
   guilloche(ctx, cx, cy, w * 0.24, 5, 0.95, 1000);
@@ -478,8 +507,8 @@ function paintBack(
     ctx.translate(cx, cy);
     ctx.rotate(Math.PI * 0.25);
     const plate = ctx.createLinearGradient(-markR, -markR, markR, markR);
-    plate.addColorStop(0, css(mixHex(TOKENS.plum, TOKENS.violet, 0.45)));
-    plate.addColorStop(1, css(TOKENS.feltDeep));
+    plate.addColorStop(0, css(B.hi));
+    plate.addColorStop(1, css(B.lo));
     ctx.fillStyle = plate;
     ctx.fillRect(-markR, -markR, markR * 2, markR * 2);
     ctx.lineWidth = Math.max(1, w * 0.008);
@@ -497,8 +526,8 @@ function paintBack(
   }
 
   const band = Math.max(6, w * 0.2);
-  const shade = css(TOKENS.void, 0.55);
-  const clear = css(TOKENS.void, 0);
+  const shade = css(B.shade, 0.55);
+  const clear = css(B.shade, 0);
   const sides: [number, number, number, number, number, number, number, number][] = [
     [0, 0, 0, band, 0, 0, w, band],
     [0, h, 0, h - band, 0, h - band, w, band],
@@ -626,4 +655,15 @@ export async function bakeCardAtlas(
     cellH: sheet.cellH,
     pxPerCss: sheet.cellW / Math.max(1, cssCardW),
   };
+}
+
+/** Dev preview: one back in a given theme, as its own canvas. */
+export async function bakeBackPreview(cellW: number, theme: BackThemeId): Promise<HTMLCanvasElement> {
+  await ensureFonts();
+  const cellH = Math.round(cellW * CARD_ASPECT);
+  const c = document.createElement('canvas');
+  c.width = cellW;
+  c.height = cellH;
+  paintBack(c.getContext('2d')!, cellW, cellH, await loadLogo(), BACK_THEMES[theme]);
+  return c;
 }

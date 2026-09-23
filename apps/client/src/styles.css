@@ -10,17 +10,20 @@
 
 :root {
   /* --- colour (render/palette.ts) ----------------------------------------- */
-  --c-bg: #0b0d1a;
-  --c-bg-deep: #05060d;
-  --c-plate-top: #171b36;
-  --c-plate-bottom: #0f1226;
-  --c-rim: #242a4a;
-  --c-socket: #14172c;
-  --c-spot: #2b2f6e;
-  --c-text: #f2f4ff;
-  --c-text-dim: #8b90b8;
+  --c-bg: #06110d;
+  --c-bg-deep: #030907;
+  --c-plate-top: #0f3a2e;
+  --c-plate-bottom: #082419;
+  --c-rim: #1f5a47;
+  --c-socket: #0a2a20;
+  --c-spot: #1f5a47;
+  --c-text: #f5f1e6;
+  --c-text-dim: #9fb5a8;
   --c-mint: #3de6c9;
-  --c-amber: #ffb84d;
+  --c-amber: #ffc53d;
+  /* Solitaire Plus: the logo's ribbon crimson (heat) and the card back's royal navy */
+  --c-crimson: #d7263d;
+  --c-navy: #1f3f86;
   --c-rose: #ff5c8a;
   --c-indigo: #7c6bff;
   --c-warm-white: #ffe8c8;
@@ -33,13 +36,13 @@
   --c-magenta: #e040fb;
   /* rgb triplets for alpha mixes */
   --mint-rgb: 61 230 201;
-  --amber-rgb: 255 184 77;
+  --amber-rgb: 255 197 61;
   --rose-rgb: 255 92 138;
   --indigo-rgb: 124 107 255;
   --sky-rgb: 79 179 255;
-  --text-rgb: 242 244 255;
+  --text-rgb: 245 241 230;
   --warm-rgb: 255 232 200;
-  --ink-rgb: 5 6 13;
+  --ink-rgb: 3 9 7;
 
   /* --- ranks (account XP; render/palette.ts RANK_COLORS), cool → hot → white-gold */
   --rank-0: #c4cde6; /* Pebble    cold slate (lifted well clear of text-dim) */
@@ -78,7 +81,7 @@
   --line-strong: rgb(var(--text-rgb) / 0.14);
 
   /* glass slab: plate gradient at ~85% over a blurred backdrop */
-  --glass: linear-gradient(160deg, rgb(23 27 54 / 0.84), rgb(15 18 38 / 0.9));
+  --glass: linear-gradient(160deg, rgb(15 58 46 / 0.84), rgb(8 36 25 / 0.9));
   --glass-solid: linear-gradient(160deg, var(--c-plate-top), var(--c-plate-bottom));
   --glass-blur: blur(18px) saturate(1.25);
   --inset-hi: inset 0 1px 0 rgb(255 255 255 / 0.07);

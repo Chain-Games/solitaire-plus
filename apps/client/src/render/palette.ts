@@ -1,27 +1,33 @@
 /**
  * Art direction in numbers. See docs/art-direction.md for the reasoning.
+ * Solitaire Plus "Royal Navy & Gold" (owner's pick, 09-23): emerald felt,
+ * logo gold, ribbon crimson, navy card backs; mint / rose keep their roles.
  * Colours are 0xRRGGBB for Pixi.
  */
 export const PALETTE = {
   /** Page and canvas ground. */
-  bg: 0x0b0d1a,
-  bgDeep: 0x05060d,
+  bg: 0x06110d,
+  bgDeep: 0x030907,
   /** Board plate (top of gradient → bottom), rim, sockets. */
-  plateTop: 0x171b36,
-  plateBottom: 0x0f1226,
-  plateRim: 0x242a4a,
-  socket: 0x14172c,
+  plateTop: 0x0f3a2e,
+  plateBottom: 0x082419,
+  plateRim: 0x1f5a47,
+  socket: 0x0a2a20,
   /** Text and chrome. */
-  text: 0xf2f4ff,
-  textDim: 0x8b90b8,
+  text: 0xf5f1e6,
+  textDim: 0x9fb5a8,
   accent: 0x3de6c9,
-  accentWarm: 0xffb84d,
+  accentWarm: 0xffc53d,
+  /** The logo's ribbon crimson: heat, the streak's hot end. */
+  crimson: 0xd7263d,
+  /** The card back's royal navy. */
+  navy: 0x1f3f86,
   danger: 0xff5c8a,
   indigo: 0x7c6bff,
   /** Warm white: the high-key grade, light leaks, the results sting core. */
   warmWhite: 0xffe8c8,
   /** Spotlight pool under the board. */
-  spotlight: 0x2b2f6e,
+  spotlight: 0x1f5a47,
 } as const;
 
 /**
