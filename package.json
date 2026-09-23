@@ -1,0 +1,34 @@
+{
+  "name": "solitaire-plus",
+  "version": "0.1.0-alpha.0",
+  "private": true,
+  "description": "Solitaire Plus — head-to-head Klondike. Same deal, same clock, best score wins.",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @solitaire-plus/sim build && pnpm -r --parallel --filter @solitaire-plus/sim --filter ./apps/* dev",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "typecheck": "tsc -b",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "pnpm --filter @solitaire-plus/server db:generate",
+    "db:migrate": "pnpm --filter @solitaire-plus/server db:migrate",
+    "infra:up": "sudo -n -u adam docker compose up -d --wait",
+    "infra:down": "sudo -n -u adam docker compose down",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm format:check",
+    "capture": "pnpm --filter @solitaire-plus/capture capture --"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.0",
+    "@types/node": "^24.0.0",
+    "eslint": "^9.39.0",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "^8.70.0",
+    "vitest": "2.1.9"
+  }
+}

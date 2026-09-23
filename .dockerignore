@@ -1,0 +1,16 @@
+# Build context for apps/server/Dockerfile: sources only.
+.git
+.claude
+.env
+.env.*
+!.env.example
+node_modules
+**/node_modules
+**/dist
+artifacts
+docs
+tools/worldgen/raw
+tools/worldgen/work
+apps/client/public/worlds/**/*.psd
+*.mp4
+*.log

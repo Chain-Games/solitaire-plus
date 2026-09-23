@@ -1,0 +1,23 @@
+node_modules/
+dist/
+build/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+coverage/
+.vite/
+.DS_Store
+*.log
+data/
+# Share cards (the PNGs behind /s/:id) are runtime data, kept on a volume in production.
+share-cards/
+
+# Rendered clips and probes
+artifacts/
+dist-types/
+.claude/worktrees/
+__pycache__/
+
+# Local dev infra data
+.dev/
