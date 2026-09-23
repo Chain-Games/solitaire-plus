@@ -1,0 +1,6 @@
+{
+  "$comment": "Class-to-class exceptions for tools/parity/src/measure.mjs. Both apps use Blockari's class names; this file only lists where they must differ.",
+  "ignoreClasses": ["is-live", "focus-visible"],
+  "rename": {},
+  "skip": [".backdrop", "canvas", "svg *", "[aria-hidden=\"true\"] *", ".toast-stack"]
+}

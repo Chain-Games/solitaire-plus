@@ -143,6 +143,12 @@ importers:
         specifier: 2.1.9
         version: 2.1.9(@types/node@24.13.6)
 
+  tools/capture: {}
+
+  tools/cardfx: {}
+
+  tools/parity: {}
+
 packages:
 
   '@babel/code-frame@7.29.7':

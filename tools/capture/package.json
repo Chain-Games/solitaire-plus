@@ -1,0 +1,10 @@
+{
+  "name": "@solitaire-plus/capture",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "QA capture harness: every screen at phone 390x844 and desktop 1920x1080, @2x, SwiftShader only.",
+  "scripts": {
+    "capture": "node src/capture.mjs"
+  }
+}

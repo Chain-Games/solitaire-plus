@@ -1,0 +1,10 @@
+{
+  "name": "@solitaire-plus/parity",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DOM layout parity against Blockari: every element's box and text metrics, class to class, 4 px tolerance.",
+  "scripts": {
+    "parity": "node src/measure.mjs"
+  }
+}
