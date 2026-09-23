@@ -106,10 +106,20 @@ export interface UserProfile extends XpProgress {
   chainPnlPct: number | null;
 }
 
+/** POST /games/:id/moves: the cards the moves showed, and the server's state hash after them. */
+export interface MovesReply {
+  count: number;
+  reveals: { slot: number; card: number }[];
+  stateHash: string;
+}
+
 export interface GameView {
   id: string;
   challengeId: string | null;
-  seed: string;
+  /** Null until the game is finished and its challenge settled: the seed is the answer key. */
+  seed: string | null;
+  /** Slot -> card for every card this game has shown; null for the rest. */
+  deal: (number | null)[];
   status: 'pending' | 'playing' | 'finished';
   startedAt: string | null;
   deadlineAt: string | null;
@@ -231,7 +241,7 @@ export const api = {
   game: (id: string) => call<{ game: GameView }>('GET', `/api/games/${id}`),
   startGame: (id: string) => call<{ game: GameView }>('POST', `/api/games/${id}/start`),
   sendMoves: (id: string, fromIndex: number, moves: TimedMove[]) =>
-    call<{ count: number }>('POST', `/api/games/${id}/moves`, { fromIndex, moves }),
+    call<MovesReply>('POST', `/api/games/${id}/moves`, { fromIndex, moves }),
   finishGame: (id: string, fromIndex: number, moves: TimedMove[]) =>
     call<{ game: GameView }>('POST', `/api/games/${id}/finish`, { fromIndex, moves }),
 

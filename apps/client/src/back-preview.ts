@@ -1,4 +1,10 @@
-import { BACK_THEMES, CARD_RADIUS, bakeBackPreview, bakeCardSheet, type BackThemeId } from './render/card-art.js';
+import {
+  BACK_THEMES,
+  CARD_RADIUS,
+  bakeBackPreview,
+  bakeCardSheet,
+  type BackThemeId,
+} from './render/card-art.js';
 
 /** Dev-only: /back-preview.html — every back colourway beside a face, on the felt. */
 async function main(): Promise<void> {
